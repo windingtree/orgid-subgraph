@@ -2,11 +2,9 @@
 
 This subgraph tracks events occuring on Winding Tree's ORGiD contract.
 
-## Local Development
+## Installation
 
-The below instructions are adapted from [The Graph quickstart](https://thegraph.com/docs/quick-start#local-development):
-
-### Installation
+The below instructions are adapted from [The Graph quickstart](https://thegraph.com/docs/quick-start#local-development).
 
 Clone the source code:
 
@@ -25,6 +23,8 @@ Generate code:
 ```shell
 yarn codegen
 ```
+
+## Local Development
 
 ### Start a local Graph Node
 
@@ -48,7 +48,7 @@ __For Linux__: the docket host IP must be updated using the `setup.sh` script:
 ./setup.sh
 ```
 
-For an externally hosted node type infura, the ethereum node URL must be updated to it.
+For an externally hosted node type infura, the ethereum node URL must be updated in the `docker-compose.yml` file.
 
 Then launch the node:
 
@@ -59,7 +59,7 @@ docker-compose up
 
 ### Initialize the subgraph
 
-Allocate the subgraph name in the Graph Node with:
+Allocate the subgraph in the Graph Node with:
 
 ```shell
 yarn create-local
