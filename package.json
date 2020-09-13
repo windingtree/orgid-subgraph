@@ -1,6 +1,8 @@
 {
   "name": "orgid-subgraph",
-  "license": "UNLICENSED",
+  "version": "1.0.0",
+  "description": "The ORGiD subgraph maps the ORGiD Contract with events in GraphQL",
+  "license": "GPL-3.0-only",
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",

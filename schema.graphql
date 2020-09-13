@@ -1,6 +1,8 @@
-type ExampleEntity @entity {
+type Organization @entity {
   id: ID!
-  count: BigInt!
-  previousAdmin: Bytes! # address
-  newAdmin: Bytes! # address
+  owner: Bytes! # address
+  isActive: Boolean
+  director: Bytes # address
+  countryCode: String
+  country: String
 }
