@@ -48,7 +48,7 @@ __For Linux__: the docket host IP must be updated using the `setup.sh` script:
 ./setup.sh
 ```
 
-For an external node type infura, the ethereum node URL must be updated to it.
+For an externally hosted node type infura, the ethereum node URL must be updated to it.
 
 Then launch the node:
 
@@ -77,6 +77,20 @@ Once the ingestion is completed, you can query the Graph Node, for example to ge
 
 ```shell
 curl -X POST \
-    -d '{ "query": "{organizations {id, owner}}" }' \
+    -d '{ "query": "{organizations {id, owner, isActive}}" }' \
     http://localhost:8000/subgraphs/name/windingtree/orgid-subgraph
+```
+
+## Deploy to The Graph
+
+Create an access token and store it locally. `<ACCESS_TOKEN>` is from [The Graph Dashboard](https://thegraph.com/explorer/dashboard).
+
+```shell
+graph auth https://api.thegraph.com/deploy/ <ACCESS_TOKEN>
+```
+
+Then deploy:
+
+```shell
+yarn deploy
 ```
