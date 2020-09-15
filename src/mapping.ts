@@ -8,7 +8,7 @@ import {
   UnitCreated,
 } from "../generated/Contract/Orgid"
 import { 
-  getOrganizationFromContract
+  getOrganizationFromContract,
 } from './helpers'
 
 // Handle the creation of a new organization
@@ -16,6 +16,11 @@ export function handleOrganizationCreated(event: OrganizationCreated): void {
   // Create organization with event data
   let organization = getOrganizationFromContract(event.params.orgId)
   if(organization) {
+    // Update creation time
+    organization.createdAtTimestamp = event.block.timestamp
+    organization.createdAtBlockNumber = event.block.number
+
+    // Save organization
     organization.save()
   }
 }
@@ -24,6 +29,11 @@ export function handleOrganizationCreated(event: OrganizationCreated): void {
 export function handleUnitCreated(event: UnitCreated): void {
   let unit = getOrganizationFromContract(event.params.unitOrgId)
   if(unit) {
+    // Update creation time
+    unit.createdAtTimestamp = event.block.timestamp
+    unit.createdAtBlockNumber = event.block.number
+
+    // Save organization
     unit.save()
   }
 }

@@ -37,7 +37,7 @@ export function getOrganizationFromContract(id: Bytes): Organization | null {
 
   // Retrieve values from contract
   let exists                 = getOrganizationCallResult.value.value0
-  let orgId                  = getOrganizationCallResult.value.value1
+  //let orgId                  = getOrganizationCallResult.value.value1
   let orgJsonHash            = getOrganizationCallResult.value.value2
   let orgJsonUri             = getOrganizationCallResult.value.value3
   let orgJsonUriBackup1      = getOrganizationCallResult.value.value4
@@ -50,11 +50,15 @@ export function getOrganizationFromContract(id: Bytes): Organization | null {
 
   // Check if the organization exists
   if(!exists) {
-    log.warning("Organization deos not exist", [])
+    log.warning("Organization does not exist", [])
     return null
   }
 
   // Map values which have a 1:1 relationship
+  organization.orgJsonHash = orgJsonHash
+  organization.orgJsonUri = orgJsonUri
+  organization.orgJsonUriBackup1 = orgJsonUriBackup1
+  organization.orgJsonUriBackup2 = orgJsonUriBackup2
   organization.isActive = isActive
   organization.owner = owner
 

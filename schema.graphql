@@ -1,10 +1,24 @@
 type Organization @entity {
+  # ORGiD value
   id: ID!
+
+  # Mirrored from Smart-contract
   owner: Bytes! # address
   isActive: Boolean
   director: Bytes # address
-  countryCode: String
-  country: String
+  orgJsonHash: Bytes
+  orgJsonUri: String
+  orgJsonUriBackup1: String
+  orgJsonUriBackup2: String
+
+  # Mapping with other Organizations
   units: [Organization!]
   parent: Organization
+
+  # Enriched offchain data
+  ## TODO
+
+  # Creation stats
+  createdAtTimestamp: BigInt!
+  createdAtBlockNumber: BigInt!
 }
