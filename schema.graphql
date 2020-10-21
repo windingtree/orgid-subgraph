@@ -7,9 +7,7 @@ type Organization @entity {
   isActive: Boolean
   director: Bytes # address
   orgJsonHash: Bytes
-  orgJsonUri: String
-  orgJsonUriBackup1: String
-  orgJsonUriBackup2: String
+  ipfsCid: String
 
   # Mapping with other Organizations
   units: [Organization!]

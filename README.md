@@ -18,12 +18,6 @@ Install dependencies:
 yarn install
 ```
 
-Generate code:
-
-```shell
-yarn codegen
-```
-
 ## Local Development
 
 ### Start a local Graph Node
@@ -58,6 +52,18 @@ docker-compose up
 ```
 
 ### Initialize the subgraph
+
+Generate code:
+
+```shell
+yarn codegen
+```
+
+Build the subgraph:
+
+```shell
+yarn build
+```
 
 Allocate the subgraph in the Graph Node with:
 

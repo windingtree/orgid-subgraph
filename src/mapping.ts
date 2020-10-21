@@ -7,9 +7,13 @@ import {
   OrganizationOwnershipTransferred,
   UnitCreated,
 } from "../generated/Contract/Orgid"
+
 import { 
   getOrganizationFromContract,
-} from './helpers'
+} from './orgid'
+
+import { enrich } from './ipfs'
+import { Organization } from "../generated/schema"
 
 // Handle the creation of a new organization
 export function handleOrganizationCreated(event: OrganizationCreated): void {
@@ -22,6 +26,7 @@ export function handleOrganizationCreated(event: OrganizationCreated): void {
 
     // Save organization
     organization.save()
+    enrich(<Organization>organization)
   }
 }
 

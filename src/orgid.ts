@@ -1,6 +1,6 @@
 import { 
   Address,
-  Bytes,
+	Bytes,
   log,
 } from "@graphprotocol/graph-ts"
 
@@ -36,17 +36,13 @@ export function getOrganizationFromContract(id: Bytes): Organization | null {
   }
 
   // Retrieve values from contract
-  let exists                 = getOrganizationCallResult.value.value0
-  //let orgId                  = getOrganizationCallResult.value.value1
-  let orgJsonHash            = getOrganizationCallResult.value.value2
-  let orgJsonUri             = getOrganizationCallResult.value.value3
-  let orgJsonUriBackup1      = getOrganizationCallResult.value.value4
-  let orgJsonUriBackup2      = getOrganizationCallResult.value.value5
-  let parentOrgId            = getOrganizationCallResult.value.value6
-  let owner                  = getOrganizationCallResult.value.value7
-  let director               = getOrganizationCallResult.value.value8
-  let isActive               = getOrganizationCallResult.value.value9
-  let isDirectorshipAccepted = getOrganizationCallResult.value.value10
+  let exists                 = <boolean>getOrganizationCallResult.value.value0
+  let orgJsonHash            = <Bytes>getOrganizationCallResult.value.value2
+  let parentOrgId            = <Bytes>getOrganizationCallResult.value.value6
+  let owner                  = <Address>getOrganizationCallResult.value.value7
+  let director               = <Address>getOrganizationCallResult.value.value8
+  let isActive               = <boolean>getOrganizationCallResult.value.value9
+  let isDirectorshipAccepted = <boolean>getOrganizationCallResult.value.value10
 
   // Check if the organization exists
   if(!exists) {
@@ -56,9 +52,6 @@ export function getOrganizationFromContract(id: Bytes): Organization | null {
 
   // Map values which have a 1:1 relationship
   organization.orgJsonHash = orgJsonHash
-  organization.orgJsonUri = orgJsonUri
-  organization.orgJsonUriBackup1 = orgJsonUriBackup1
-  organization.orgJsonUriBackup2 = orgJsonUriBackup2
   organization.isActive = isActive
   organization.owner = owner
 
