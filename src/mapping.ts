@@ -8,12 +8,16 @@ import {
   UnitCreated,
 } from "../generated/Contract/Orgid"
 
+import { Organization } from "../generated/schema"
+
 import { 
   getOrganizationFromContract,
 } from './orgid'
 
-import { enrich } from './ipfs'
-import { Organization } from "../generated/schema"
+import { cidFromHash, enrichOrganization } from './ipfs'
+
+import { Bytes } from "@graphprotocol/graph-ts"
+
 
 // Handle the creation of a new organization
 export function handleOrganizationCreated(event: OrganizationCreated): void {
@@ -24,9 +28,19 @@ export function handleOrganizationCreated(event: OrganizationCreated): void {
     organization.createdAtTimestamp = event.block.timestamp
     organization.createdAtBlockNumber = event.block.number
 
+    // Add JSON IPFS CID
+    if(organization.orgJsonHash) {
+      organization.ipfsCid = cidFromHash(organization.orgJsonHash as Bytes)
+    }
+
     // Save organization
     organization.save()
-    enrich(<Organization>organization)
+
+    // Start process to enrich from ipfs
+    if(organization.ipfsCid) {
+      enrichOrganization(organization as Organization)
+    }
+    
   }
 }
 

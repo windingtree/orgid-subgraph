@@ -14,7 +14,7 @@ type Organization @entity {
   parent: Organization
 
   # Enriched offchain data
-  ## TODO
+  legalName: String
 
   # Creation stats
   createdAtTimestamp: BigInt!
