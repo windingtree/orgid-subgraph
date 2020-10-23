@@ -2,7 +2,9 @@ import {
   ipfs,
   Bytes,
   JSONValue,
-  Value
+  JSONValueKind,
+  Value,
+  log
 } from "@graphprotocol/graph-ts"
 
 import { encode } from "./base32"
@@ -32,13 +34,35 @@ export function cidFromHash(orgJsonHash: Bytes): string {
 }
 
 export function processOrganizationJson(value: JSONValue, userData: Value): void {
-  // Extract details from JSON document
+  // Extract JSON document
+  if(value.kind != JSONValueKind.OBJECT) {
+    log.error('IPFS|{}|Unexpected JSON', [userData.toString()])
+    return
+  }
   let org = value.toObject()
-  let legalEntity = org.get('legalEntity').toObject()
+  
+  // Extract Legal Entity
+  if(!org.isSet('legalEntity')) {
+    log.error('IPFS|{}|Missing legalEntity', [userData.toString()])
+    return
+  }
+  let legalEntityJson = org.get('legalEntity')
 
-  // Callbacks can also created entities
+  // Extract legal entity
+  if(legalEntityJson.kind != JSONValueKind.OBJECT) {
+    log.error('IPFS|{}|Unexpected type for legalEntity', [userData.toString()])
+    return
+  }
+  let legalEntity = legalEntityJson.toObject()
+
+  // Load organization
   let organization = Organization.load(userData.toString())
-  organization.legalName = legalEntity.get('legalName').toString()
+  
+  // Add legal name
+  if(legalEntity.isSet('legalName') && legalEntity.get('legalName').kind == JSONValueKind.STRING) {
+    organization.legalName = legalEntity.get('legalName').toString()
+  }
+  
   organization.save()
 }
 

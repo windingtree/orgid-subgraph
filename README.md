@@ -100,3 +100,11 @@ Then deploy:
 ```shell
 yarn deploy
 ```
+
+Status on the syncronization can be retrieved using:
+
+```shell
+curl -X POST \
+    -d '{ "query": "query { indexingStatusForPendingVersion(subgraphName: \"windingtree/orgid-subgraph\") { synced health fatalError { message handler} }}" }' \
+    https://api.thegraph.com/index-node/graphql
+```
