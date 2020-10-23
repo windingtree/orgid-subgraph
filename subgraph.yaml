@@ -1,5 +1,5 @@
 specVersion: 0.0.2
-description: ORGiD decentralized business register for travel
+description: ORGiD decentralized register for travel businesses
 repository: https://github.com/windingtree/orgid-subgraph
 schema:
   file: ./schema.graphql

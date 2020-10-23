@@ -6,18 +6,10 @@ import {
   OrganizationCreated,
   OrganizationOwnershipTransferred,
   UnitCreated,
-} from "../generated/Contract/Orgid"
-
-import { Organization } from "../generated/schema"
-
-import { 
-  getOrganizationFromContract,
-} from './orgid'
-
-import { cidFromHash, enrichOrganization } from './ipfs'
-
+} from '../generated/Contract/Orgid'
 import { Bytes } from "@graphprotocol/graph-ts"
-
+import { getOrganizationFromContract } from './orgid'
+import { cidFromHash, getLegalEntity } from './ipfs'
 
 // Handle the creation of a new organization
 export function handleOrganizationCreated(event: OrganizationCreated): void {
@@ -31,15 +23,17 @@ export function handleOrganizationCreated(event: OrganizationCreated): void {
     // Add JSON IPFS CID
     if(organization.orgJsonHash) {
       organization.ipfsCid = cidFromHash(organization.orgJsonHash as Bytes)
+
+      // Add LegalEntity
+      let legalEntity = getLegalEntity(organization.ipfsCid)
+      if(legalEntity) {
+        legalEntity.save()
+        organization.legalEntity = legalEntity.id
+      }
     }
 
     // Save organization
     organization.save()
-
-    // Start process to enrich from ipfs
-    if(organization.ipfsCid) {
-      enrichOrganization(organization as Organization)
-    }
     
   }
 }

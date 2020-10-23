@@ -1,3 +1,13 @@
+# Define the Legal Entity type
+type LegalEntity @entity {
+  id: ID!
+  legalName: String
+  legalType: String
+  country: String
+  logoUri: String
+}
+
+# Define an Organization
 type Organization @entity {
   # ORGiD value
   id: ID!
@@ -13,8 +23,8 @@ type Organization @entity {
   units: [Organization!]
   parent: Organization
 
-  # Enriched offchain data
-  legalName: String
+  # From offchain data
+  legalEntity: LegalEntity
 
   # Creation stats
   createdAtTimestamp: BigInt!

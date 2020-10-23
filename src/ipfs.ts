@@ -1,14 +1,13 @@
 import { 
   ipfs,
   Bytes,
-  JSONValue,
+  json,
   JSONValueKind,
-  Value,
   log
 } from "@graphprotocol/graph-ts"
 
 import { encode } from "./base32"
-import { Organization } from "../generated/schema"
+import { LegalEntity } from "../generated/schema"
 
 // This function creates a CID v1 from the kccek256 hash of the JSON file
 // Spec: https://github.com/multiformats/cid
@@ -33,40 +32,135 @@ export function cidFromHash(orgJsonHash: Bytes): string {
   return 'b' + encode(rawCid)
 }
 
-export function processOrganizationJson(value: JSONValue, userData: Value): void {
+// Retrieve organization from IPFS content
+export function getLegalEntity(ipfsCid: string): LegalEntity | null {
+  // Retrieve the Organization from IPFS
+  let orgJsonBytes = ipfs.cat(ipfsCid)
+  if(!orgJsonBytes) {
+    log.warning('IPFS|{}|Could not retrieve CID', [ipfsCid])
+    return null
+  }
+
   // Extract JSON document
-  if(value.kind != JSONValueKind.OBJECT) {
-    log.error('IPFS|{}|Unexpected JSON', [userData.toString()])
-    return
+  let orgJsonValue = json.fromBytes(orgJsonBytes as Bytes)
+  if(!orgJsonValue) {
+    log.warning('IPFS|{}|Data retrieved is not JSON', [ipfsCid])
+    return null
   }
-  let org = value.toObject()
+
+  // Check the JSON type
+  if(orgJsonValue.kind != JSONValueKind.OBJECT) {
+    log.error('IPFS|{}|Unexpected JSON', [ipfsCid])
+    return null
+  }
+  let orgJsonObject = orgJsonValue.toObject()
+
+  // Check DID presence
+  if(!orgJsonObject.isSet('id')) {
+    log.error('IPFS|{}|Missing id', [ipfsCid])
+    return null
+  }
+  let didValue = orgJsonObject.get('id')
+
+  // Extract DID
+  if(didValue.kind != JSONValueKind.STRING) {
+    log.error('IPFS|{}|Unexpected type for id', [ipfsCid])
+    return null
+  }
+  let did = didValue.toString()
+
+  // Create the object
+  let outputLegalEntity = LegalEntity.load(did)
+  if(!outputLegalEntity) {
+    outputLegalEntity = new LegalEntity(did)
+  }
   
-  // Extract Legal Entity
-  if(!org.isSet('legalEntity')) {
-    log.error('IPFS|{}|Missing legalEntity', [userData.toString()])
-    return
+  // Check Legal Entity presence
+  if(!orgJsonObject.isSet('legalEntity')) {
+    log.error('IPFS|{}|Missing legalEntity', [ipfsCid])
+    return null
   }
-  let legalEntityJson = org.get('legalEntity')
+  let legalEntityValue = orgJsonObject.get('legalEntity')
 
   // Extract legal entity
-  if(legalEntityJson.kind != JSONValueKind.OBJECT) {
-    log.error('IPFS|{}|Unexpected type for legalEntity', [userData.toString()])
-    return
+  if(legalEntityValue.kind != JSONValueKind.OBJECT) {
+    log.error('IPFS|{}|Unexpected type for legalEntity', [ipfsCid])
+    return null
   }
-  let legalEntity = legalEntityJson.toObject()
+  let legalEntityObject = legalEntityValue.toObject()
 
-  // Load organization
-  let organization = Organization.load(userData.toString())
-  
-  // Add legal name
-  if(legalEntity.isSet('legalName') && legalEntity.get('legalName').kind == JSONValueKind.STRING) {
-    organization.legalName = legalEntity.get('legalName').toString()
+  // Check legal name presence
+  if(!legalEntityObject.isSet('legalName')) {
+    log.error('IPFS|{}|Missing legalName', [ipfsCid])
+    return null
   }
-  
-  organization.save()
-}
+  let legalNameValue = legalEntityObject.get('legalName')
 
-// Enrich organization with IPFS content
-export function enrichOrganization(organization: Organization): void {
-  ipfs.mapJSON(organization.ipfsCid, 'processOrganizationJson', Value.fromString(organization.id))
+  // Extract legal name
+  if(legalNameValue.kind != JSONValueKind.STRING) {
+    log.error('IPFS|{}|Unexpected type for legalName', [ipfsCid])
+    return null
+  }
+  outputLegalEntity.legalName = legalNameValue.toString()
+
+  // Check legal type presence
+  if(!legalEntityObject.isSet('legalType')) {
+    log.error('IPFS|{}|Missing legalType', [ipfsCid])
+    return null
+  }
+  let legalTypeValue = legalEntityObject.get('legalType')
+
+  // Extract legal type
+  if(legalTypeValue.kind != JSONValueKind.STRING) {
+    log.error('IPFS|{}|Unexpected type for legalType', [ipfsCid])
+    return null
+  }
+  outputLegalEntity.legalType = legalTypeValue.toString()
+
+  // Check registeredAddress
+  if(legalEntityObject.isSet('registeredAddress')) {
+    let registeredAddressValue = legalEntityObject.get('registeredAddress')
+    if(registeredAddressValue.kind != JSONValueKind.OBJECT) {
+      log.error('IPFS|{}|Unexpected type for registeredAddress', [ipfsCid])
+      return null
+    } else {
+      let registeredAddressObject = registeredAddressValue.toObject()
+
+      // Get Country
+      if(registeredAddressObject.isSet('country')) {
+        let registeredAddressCountryValue = registeredAddressObject.get('country')
+        if(registeredAddressCountryValue.kind != JSONValueKind.STRING) {
+          log.error('IPFS|{}|Unexpected type for registeredAddress/country', [ipfsCid])
+          return null
+        } else {
+          outputLegalEntity.country = registeredAddressCountryValue.toString()
+        }
+      }
+    }
+  }
+
+  // Check media
+  if(legalEntityObject.isSet('media')) {
+    let mediaValue = legalEntityObject.get('media')
+    if(mediaValue.kind != JSONValueKind.OBJECT) {
+      log.error('IPFS|{}|Unexpected type for media', [ipfsCid])
+      return null
+    } else {
+      let mediaObject = mediaValue.toObject()
+
+      // Get logo
+      if(mediaObject.isSet('logo')) {
+        let mediaLogoValue = mediaObject.get('logo')
+        if(mediaLogoValue.kind != JSONValueKind.STRING) {
+          log.error('IPFS|{}|Unexpected type for media/logo', [ipfsCid])
+          return null
+        } else {
+          outputLegalEntity.logoUri = mediaLogoValue.toString()
+        }
+      }
+    }
+  }
+
+  return outputLegalEntity
+
 }
