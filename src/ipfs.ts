@@ -140,8 +140,8 @@ export function getLegalEntity(ipfsCid: string): LegalEntity | null {
   }
 
   // Check media
-  if(legalEntityObject.isSet('media')) {
-    let mediaValue = legalEntityObject.get('media')
+  if(orgJsonObject.isSet('media')) {
+    let mediaValue = orgJsonObject.get('media')
     if(mediaValue.kind != JSONValueKind.OBJECT) {
       log.error('IPFS|{}|Unexpected type for media', [ipfsCid])
       return null

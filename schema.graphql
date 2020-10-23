@@ -5,6 +5,7 @@ type LegalEntity @entity {
   legalType: String
   country: String
   logoUri: String
+  organization: Organization
 }
 
 # Define an Organization

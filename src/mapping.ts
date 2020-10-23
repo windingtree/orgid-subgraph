@@ -27,6 +27,7 @@ export function handleOrganizationCreated(event: OrganizationCreated): void {
       // Add LegalEntity
       let legalEntity = getLegalEntity(organization.ipfsCid)
       if(legalEntity) {
+        legalEntity.organization = organization.id
         legalEntity.save()
         organization.legalEntity = legalEntity.id
       }
@@ -45,6 +46,20 @@ export function handleUnitCreated(event: UnitCreated): void {
     // Update creation time
     unit.createdAtTimestamp = event.block.timestamp
     unit.createdAtBlockNumber = event.block.number
+
+    // Add JSON IPFS CID
+    if(unit.orgJsonHash) {
+      unit.ipfsCid = cidFromHash(unit.orgJsonHash as Bytes)
+
+      // Add OrganizationalUnit
+      /*
+      let legalEntity = getLegalEntity(organization.ipfsCid)
+      if(legalEntity) {
+        legalEntity.save()
+        organization.legalEntity = legalEntity.id
+      }
+      */
+    }
 
     // Save organization
     unit.save()
