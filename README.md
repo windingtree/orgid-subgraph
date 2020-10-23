@@ -2,6 +2,18 @@
 
 This subgraph tracks events occuring on Winding Tree's ORGiD contract.
 
+The data can later be queried using a GraphQL API.
+
+## Usage Example
+
+Get 5 random ORGiDs, their owner and the country of the legal entity:
+
+```shell
+curl -X POST \
+    -d '{ "query": "query { organizations(first: 5) { id owner legalEntity { country }}}" }' \
+    https://api.thegraph.com/subgraphs/name/windingtree/orgid-subgraph
+```
+
 ## Installation
 
 The below instructions are adapted from [The Graph quickstart](https://thegraph.com/docs/quick-start#local-development).
@@ -108,3 +120,6 @@ curl -X POST \
     -d '{ "query": "query { indexingStatusForPendingVersion(subgraphName: \"windingtree/orgid-subgraph\") { synced health fatalError { message handler} }}" }' \
     https://api.thegraph.com/index-node/graphql
 ```
+
+
+
