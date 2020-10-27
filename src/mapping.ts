@@ -9,7 +9,7 @@ import {
 } from '../generated/Contract/Orgid'
 import { Bytes } from "@graphprotocol/graph-ts"
 import { getOrganizationFromContract } from './orgid'
-import { cidFromHash, getLegalEntity } from './ipfs'
+import { cidFromHash, getLegalEntity, getOrganizationalUnit } from './ipfs'
 
 // Handle the creation of a new organization
 export function handleOrganizationCreated(event: OrganizationCreated): void {
@@ -52,13 +52,11 @@ export function handleUnitCreated(event: UnitCreated): void {
       unit.ipfsCid = cidFromHash(unit.orgJsonHash as Bytes)
 
       // Add OrganizationalUnit
-      /*
-      let legalEntity = getLegalEntity(organization.ipfsCid)
-      if(legalEntity) {
-        legalEntity.save()
-        organization.legalEntity = legalEntity.id
+      let organizationalUnit = getOrganizationalUnit(unit.ipfsCid)
+      if(organizationalUnit) {
+        organizationalUnit.save()
+        unit.organizationalUnit = organizationalUnit.id
       }
-      */
     }
 
     // Save organization
