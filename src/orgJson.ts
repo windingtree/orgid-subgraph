@@ -1,5 +1,4 @@
 import { 
-  json,
   JSONValue,
   JSONValueKind,
   log,
@@ -7,7 +6,23 @@ import {
 } from "@graphprotocol/graph-ts"
   
 import { getJson } from "./ipfs"
-import { LegalEntity, OrganizationalUnit, OrganizationAddress, Organization } from "../generated/schema"
+import {
+  LegalEntity,
+  OrganizationalUnit,
+  OrganizationAddress,
+  PublicKey,
+  Service,
+} from "../generated/schema"
+
+// Structure to provide the parsed data
+export class OrgJson {
+  did: string
+  organizationalType: string
+  legalEntity: LegalEntity
+  organizationalUnit: OrganizationalUnit
+  publicKey: PublicKey[]
+  service: Service[]
+}
 
 // Get safely a property of an object
 function safeGet(jsonObject: TypedMap<string, JSONValue> | null, expectedKind: JSONValueKind, property: string): JSONValue | null {
@@ -70,15 +85,67 @@ function toAddress(did: string, jsonObject: TypedMap<string, JSONValue> | null):
 
 }
 
+// Convert a JSON Value to a Public Key
+function toPublicKey(did: string, jsonObject: TypedMap<string, JSONValue> | null): PublicKey | null {
+  if(jsonObject == null) {
+    return null
+  }
+
+  let id = getStringProperty(jsonObject, 'id')
+  let pem = getStringProperty(jsonObject, 'publicKeyPem')
+  let type = getStringProperty(jsonObject, 'type')
+
+  if((id == null) || (pem == null) || (type == null)) {
+    log.error('OrgJSON|{}|Missing mandatory Public Key properties', [did])
+  }
+  
+  let outputPublicKey = PublicKey.load(id)
+  if(!outputPublicKey) {
+    outputPublicKey = new PublicKey(id)
+  }
+
+  outputPublicKey.type = type
+  outputPublicKey.publicKeyPem = pem
+  outputPublicKey.controller = getStringProperty(jsonObject, 'controller')
+  outputPublicKey.note = getStringProperty(jsonObject, 'note')
+
+  return outputPublicKey
+
+}
+
+// Convert a JSON Object to a Service
+function toService(did: string, jsonObject: TypedMap<string, JSONValue> | null): Service | null {
+  if(jsonObject == null) {
+    return null
+  }
+
+  let id = getStringProperty(jsonObject, 'id')
+  let serviceEndpoint = getStringProperty(jsonObject, 'serviceEndpoint')
+
+  if((id == null) || (serviceEndpoint == null)) {
+    log.error('OrgJSON|{}|Missing mandatory Service properties', [did])
+  }
+  
+  let outputService = Service.load(id)
+  if(!outputService) {
+    outputService = new Service(id)
+  }
+
+  outputService.serviceEndpoint = serviceEndpoint
+  outputService.type = getStringProperty(jsonObject, 'type')
+  outputService.version = getStringProperty(jsonObject, 'version')
+  outputService.description = getStringProperty(jsonObject, 'description')
+  outputService.docs = getStringProperty(jsonObject, 'docs')
+
+  return outputService
+
+}
+
+
 // Convert a JSON Value to legal entity
-function toLegalEntity(jsonValue: JSONValue): LegalEntity | null {
-  // Convert to object
-  let jsonObject = jsonValue.toObject()
-      
-  // Process DID
-  let did = getStringProperty(jsonObject, 'id')
-  if(!did) {
-    log.error('orgJson|{}|Missing did', [])
+function toLegalEntity(did: string, jsonObject: TypedMap<string, JSONValue> | null): LegalEntity | null {
+
+  if(jsonObject == null) {
     return null
   }
 
@@ -87,20 +154,13 @@ function toLegalEntity(jsonValue: JSONValue): LegalEntity | null {
     outputLegalEntity = new LegalEntity(did)
   }
   
-  // Handle Legal Entity
-  let legalEntityObject = getObjectProperty(jsonObject, 'legalEntity')
-  if(!legalEntityObject) {
-    log.error('orgJson|{}|Missing legalEntityValue', [did])
-    return null
-  }
-  
   // Handle legal name presence
-  outputLegalEntity.legalName = getStringProperty(legalEntityObject, 'legalName')
-  outputLegalEntity.legalType = getStringProperty(legalEntityObject, 'legalType')
-  outputLegalEntity.legalIdentifier = getStringProperty(legalEntityObject, 'legalIdentifier')
+  outputLegalEntity.legalName = getStringProperty(jsonObject, 'legalName')
+  outputLegalEntity.legalType = getStringProperty(jsonObject, 'legalType')
+  outputLegalEntity.legalIdentifier = getStringProperty(jsonObject, 'legalIdentifier')
   
   // Handle the address
-  let addressObject = getObjectProperty(legalEntityObject, 'registeredAddress')
+  let addressObject = getObjectProperty(jsonObject, 'registeredAddress')
   if(addressObject) {
     let address = toAddress(did, addressObject)
     if(address) {
@@ -113,14 +173,9 @@ function toLegalEntity(jsonValue: JSONValue): LegalEntity | null {
 }
 
 // Convert a JSON Value to an organizational unit
-function toOrganizationalUnit(jsonValue: JSONValue): OrganizationalUnit | null {
-  // Convert to object
-  let jsonObject = jsonValue.toObject()
+function toOrganizationalUnit(did: string, jsonObject: TypedMap<string, JSONValue> | null): OrganizationalUnit | null {
       
-  // Process DID
-  let did = getStringProperty(jsonObject, 'id')
-  if(!did) {
-    log.error('orgJson|{}|Missing did', [])
+  if(jsonObject == null) {
     return null
   }
 
@@ -129,24 +184,17 @@ function toOrganizationalUnit(jsonValue: JSONValue): OrganizationalUnit | null {
     outputOrganizationalUnit = new OrganizationalUnit(did)
   }
   
-  // Handle Legal Entity
-  let organizationalUnitObject = getObjectProperty(jsonObject, 'organizationalUnit')
-  if(!organizationalUnitObject) {
-    log.error('orgJson|{}|Missing organizationalUnit', [did])
-    return null
-  }
-  
   // Handle legal name presence
-  outputOrganizationalUnit.name = getStringProperty(organizationalUnitObject, 'name')
-  let types = getArrayProperty(organizationalUnitObject, 'type')
+  outputOrganizationalUnit.name = getStringProperty(jsonObject, 'name')
+  let types = getArrayProperty(jsonObject, 'type')
   if(types != null) {
     outputOrganizationalUnit.type = (types as Array<JSONValue>).map<string>((value: JSONValue) => value.toString())
   }
-  outputOrganizationalUnit.description = getStringProperty(organizationalUnitObject, 'description')
-  outputOrganizationalUnit.longDescription = getStringProperty(organizationalUnitObject, 'longDescription')
+  outputOrganizationalUnit.description = getStringProperty(jsonObject, 'description')
+  outputOrganizationalUnit.longDescription = getStringProperty(jsonObject, 'longDescription')
 
   // Handle the address
-  let addressObject = getObjectProperty(organizationalUnitObject, 'address')
+  let addressObject = getObjectProperty(jsonObject, 'address')
   if(addressObject) {
     let address = toAddress(did, addressObject)
     if(address) {
@@ -158,45 +206,81 @@ function toOrganizationalUnit(jsonValue: JSONValue): OrganizationalUnit | null {
   return outputOrganizationalUnit
 }
 
-// Retrieve Legal Entity from IPFS content
-export function getLegalEntity(ipfsCid: string): LegalEntity | null {
-  
+// Resolve an Organization
+export function resolve(orgid: string, ipfsCid: string): OrgJson | null {
+
   // Extract JSON document
   let orgJsonValue = getJson(ipfsCid, JSONValueKind.OBJECT)
   if(!orgJsonValue) {
-    log.warning('LegalEntity|{}|Error fetching JSON', [ipfsCid])
+    log.warning('OrgJson|{}|Error fetching JSON', [ipfsCid])
+    return null
+  }
+  let orgJsonObject = orgJsonValue.toObject()
+  let orgJson = new OrgJson()
+
+  // Process DID
+  orgJson.did = getStringProperty(orgJsonObject, 'id')
+  if(!orgJson.did) {
+    log.error('orgJson|{}|Missing did', [])
     return null
   }
 
-  // Extract legal entity
-  let legalEntity = toLegalEntity(orgJsonValue as JSONValue)
-  if(!legalEntity) {
-    log.warning('LegalEntity|{}|Error parsing JSON', [ipfsCid])
-    return null
+  // Process Legal Entity
+  let legalEntityObject = getObjectProperty(orgJsonObject, 'legalEntity')
+  if(legalEntityObject) {
+    orgJson.organizationalType = 'LegalEntity'
+    let legalEntity = toLegalEntity(orgJson.did, legalEntityObject)
+    if(legalEntity != null) {
+      orgJson.legalEntity = legalEntity as LegalEntity
+      orgJson.legalEntity.organization = orgid
+      orgJson.legalEntity.save()
+    }
   }
 
-  return legalEntity
-
-}
-
-
-// Retrieve Organizational Unit from IPFS content
-export function getOrganizationalUnit(ipfsCid: string): OrganizationalUnit | null {
-  
-  // Extract JSON document
-  let orgJsonValue = getJson(ipfsCid, JSONValueKind.OBJECT)
-  if(!orgJsonValue) {
-    log.warning('OrganizationalUnit|{}|Error fetching JSON', [ipfsCid])
-    return null
+  // Process Organizational Unit
+  let organizationalUnitObject = getObjectProperty(orgJsonObject, 'organizationalUnit')
+  if(organizationalUnitObject) {
+    orgJson.organizationalType = 'OrganizationalUnit'
+    let organizationalUnit = toOrganizationalUnit(orgJson.did, organizationalUnitObject)
+    if(organizationalUnit) {
+      orgJson.organizationalUnit = organizationalUnit as OrganizationalUnit
+      orgJson.organizationalUnit.organization = orgid
+      orgJson.organizationalUnit.save()
+    }
   }
 
-  // Extract Organizational Unit
-  let organizationalUnit = toOrganizationalUnit(orgJsonValue as JSONValue)
-  if(!organizationalUnit) {
-    log.warning('OrganizationalUnit|{}|Error parsing JSON', [ipfsCid])
-    return null
+  // Process Public Keys
+  let publicKeyArray = getArrayProperty(orgJsonObject, 'publicKey')
+  if(publicKeyArray) {
+    orgJson.publicKey = []
+    for(let i=0; i<publicKeyArray.length; i++) {
+      let publicKeyValue = (publicKeyArray as Array<JSONValue>)[i]
+      if(publicKeyValue.kind == JSONValueKind.OBJECT) {
+        let publicKey = toPublicKey(orgJson.did, publicKeyValue.toObject())
+        if(publicKey != null) {
+          publicKey.save()
+          orgJson.publicKey.push(publicKey as PublicKey)
+        }
+      }
+    }
   }
 
-  return organizationalUnit
+  // Process Service list
+  let serviceArray = getArrayProperty(orgJsonObject, 'service')
+  if(serviceArray) {
+    orgJson.service = []
+    for(let i=0; i<serviceArray.length; i++) {
+      let serviceValue = (serviceArray as Array<JSONValue>)[i]
+      if(serviceValue.kind == JSONValueKind.OBJECT) {
+        let service = toService(orgJson.did, serviceValue.toObject())
+        if(service != null) {
+          service.save()
+          orgJson.service.push(service as Service)
+        }
+      }
+    }
+  }
+
+  return orgJson
 
 }

@@ -18,9 +18,19 @@ enum PublicKeyType {
 type PublicKey @entity {
   id: ID!
   type: PublicKeyType!
-  pem: String!
+  publicKeyPem: String!
   controller: String
   note: String
+}
+
+# An API Service
+type Service @entity {
+  id: ID!
+  serviceEndpoint: String!
+  type: String
+  version: String
+  description: String
+  docs: String
 }
 
 # Define the Legal Entity type
@@ -44,7 +54,6 @@ type OrganizationalUnit @entity {
   address: OrganizationAddress
   logoUri: String
   organization: Organization
-  publicKey: [PublicKey!]
 }
 
 enum OrganizationType {
@@ -56,6 +65,7 @@ enum OrganizationType {
 type Organization @entity {
   # ORGiD value
   id: ID!
+  did: String
 
   # Mirrored from Smart-contract
   owner: Bytes! # address
@@ -72,6 +82,8 @@ type Organization @entity {
   organizationType: OrganizationType!
   legalEntity: LegalEntity
   organizationalUnit: OrganizationalUnit
+  publicKey: [PublicKey!]
+  service: [Service!]
 
   # Creation stats
   createdAtTimestamp: BigInt!
