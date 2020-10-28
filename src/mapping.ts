@@ -76,35 +76,31 @@ export function handleOrgJsonChanged(event: OrgJsonChanged): void {
     organization.ipfsCid = cidFromHash( event.params.newOrgJsonHash)
 
     // Update the entity object
-    switch(organization.organizationType) {
+    if(organization.organizationType == 'LegalEntity') {
       // Case of the LegalEntity
-      case 'LegalEntity': {
-        let legalEntity = getLegalEntity(organization.ipfsCid)
-        if(legalEntity) {
-          legalEntity.organization = organization.id
-          legalEntity.save()
-          organization.legalEntity = legalEntity.id
-        }
-        break;
+      let legalEntity = getLegalEntity(organization.ipfsCid)
+      if(legalEntity) {
+        legalEntity.organization = organization.id
+        legalEntity.save()
+        organization.legalEntity = legalEntity.id
       }
-
-      // Case of the LegalEntity
-      case 'OrganizationalUnit': {
-        let organizationalUnit = getOrganizationalUnit(organization.ipfsCid)
-        if(organizationalUnit) {
-          organizationalUnit.organization = organization.id
-          organizationalUnit.save()
-          organization.organizationalUnit = organizationalUnit.id
-        }
-        break;
-      }
-
-      // Default is an unknown type
-      default : {
-        log.warning("Mapping|{}|{}|Unexpected organization type", [event.params.orgId.toHexString(), organization.organizationType])
-      }
-
     }
+
+      // Case of the LegalEntity
+    else if(organization.organizationType == 'OrganizationalUnit') {
+      let organizationalUnit = getOrganizationalUnit(organization.ipfsCid)
+      if(organizationalUnit) {
+        organizationalUnit.organization = organization.id
+        organizationalUnit.save()
+        organization.organizationalUnit = organizationalUnit.id
+      }
+    }
+
+    // Unknown organization type
+    else  {
+      log.warning("Mapping|{}|{}|Unexpected organization type", [event.params.orgId.toHexString(), organization.organizationType])
+    }
+
     organization.save()
   }
 }
