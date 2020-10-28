@@ -6,9 +6,9 @@ export function encode(word: Bytes): string {
   let output = ''
 
   // Go through each block of 5 bits
-  for (let i: i32 = 0, len: i32 = word.length * 8; i < len; i+=5) {
+  for (let i = 0; i < word.length * 8; i+=5) {
     // Determine byte position
-    let skip :u8 = <u8>(i % 8) // How many bits should be skipped in the byte
+    let skip: u8 = (i % 8) as u8 // How many bits should be skipped in the byte
     let firstByteIndex = (i - skip) / 8 // Position of the first byte in the binary string
     let alphabetIndex = 0
     

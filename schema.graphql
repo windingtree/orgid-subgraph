@@ -1,3 +1,8 @@
+enum OrganizationType {
+  LegalEntity
+  OrganizationalUnit
+}
+
 # Define the Legal Entity type
 type LegalEntity @entity {
   id: ID!
@@ -35,6 +40,7 @@ type Organization @entity {
   parent: Organization
 
   # From offchain data
+  organizationType: OrganizationType!
   legalEntity: LegalEntity
   organizationalUnit: OrganizationalUnit
 

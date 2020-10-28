@@ -7,7 +7,7 @@ import {
   OrganizationOwnershipTransferred,
   UnitCreated,
 } from '../generated/Contract/Orgid'
-import { Bytes } from "@graphprotocol/graph-ts"
+import { Bytes, log } from "@graphprotocol/graph-ts"
 import { getOrganizationFromContract } from './orgid'
 import { cidFromHash, getLegalEntity, getOrganizationalUnit } from './ipfs'
 
@@ -19,6 +19,7 @@ export function handleOrganizationCreated(event: OrganizationCreated): void {
     // Update creation time
     organization.createdAtTimestamp = event.block.timestamp
     organization.createdAtBlockNumber = event.block.number
+    organization.organizationType = "LegalEntity"
 
     // Add JSON IPFS CID
     if(organization.orgJsonHash) {
@@ -46,6 +47,7 @@ export function handleUnitCreated(event: UnitCreated): void {
     // Update creation time
     unit.createdAtTimestamp = event.block.timestamp
     unit.createdAtBlockNumber = event.block.number
+    unit.organizationType = "OrganizationalUnit"
 
     // Add JSON IPFS CID
     if(unit.orgJsonHash) {
@@ -64,7 +66,48 @@ export function handleUnitCreated(event: UnitCreated): void {
   }
 }
 
-export function handleOrgJsonChanged(event: OrgJsonChanged): void {}
+export function handleOrgJsonChanged(event: OrgJsonChanged): void {
+  // Retrieve the organization
+  let organization = getOrganizationFromContract(event.params.orgId)
+  if(organization) {
+
+    // Update Hash and CID
+    organization.orgJsonHash = event.params.newOrgJsonHash
+    organization.ipfsCid = cidFromHash( event.params.newOrgJsonHash)
+
+    // Update the entity object
+    switch(organization.organizationType) {
+      // Case of the LegalEntity
+      case 'LegalEntity': {
+        let legalEntity = getLegalEntity(organization.ipfsCid)
+        if(legalEntity) {
+          legalEntity.organization = organization.id
+          legalEntity.save()
+          organization.legalEntity = legalEntity.id
+        }
+        break;
+      }
+
+      // Case of the LegalEntity
+      case 'OrganizationalUnit': {
+        let organizationalUnit = getOrganizationalUnit(organization.ipfsCid)
+        if(organizationalUnit) {
+          organizationalUnit.organization = organization.id
+          organizationalUnit.save()
+          organization.organizationalUnit = organizationalUnit.id
+        }
+        break;
+      }
+
+      // Default is an unknown type
+      default : {
+        log.warning("Mapping|{}|{}|Unexpected organization type", [event.params.orgId.toHexString(), organization.organizationType])
+      }
+
+    }
+    organization.save()
+  }
+}
 
 // Handle the change of status of an organization
 export function handleOrganizationActiveStateChanged(event: OrganizationActiveStateChanged): void {
