@@ -1,6 +1,26 @@
-enum OrganizationType {
-  LegalEntity
-  OrganizationalUnit
+# An address
+type OrganizationAddress @entity {
+  id: ID!
+  country: String
+  subdivision: String
+  locality: String
+  postalCode: String
+  streetAddress: String
+  premise: String
+}
+
+# The type of public keys
+enum PublicKeyType {
+  secp256k1
+}
+
+# A public Key
+type PublicKey @entity {
+  id: ID!
+  type: PublicKeyType!
+  pem: String!
+  controller: String
+  note: String
 }
 
 # Define the Legal Entity type
@@ -8,7 +28,8 @@ type LegalEntity @entity {
   id: ID!
   legalName: String
   legalType: String
-  country: String
+  legalIdentifier: String
+  registeredAddress: OrganizationAddress
   logoUri: String
   organization: Organization
 }
@@ -17,10 +38,18 @@ type LegalEntity @entity {
 type OrganizationalUnit @entity {
   id: ID!
   name: String
+  description: String
+  longDescription: String
   type: [String!]
-  country: String
+  address: OrganizationAddress
   logoUri: String
   organization: Organization
+  publicKey: [PublicKey!]
+}
+
+enum OrganizationType {
+  LegalEntity
+  OrganizationalUnit
 }
 
 # Define an Organization

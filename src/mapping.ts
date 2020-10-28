@@ -9,7 +9,8 @@ import {
 } from '../generated/Contract/Orgid'
 import { Bytes, log } from "@graphprotocol/graph-ts"
 import { getOrganizationFromContract } from './orgid'
-import { cidFromHash, getLegalEntity, getOrganizationalUnit } from './ipfs'
+import { cidFromHash } from './ipfs'
+import { getLegalEntity, getOrganizationalUnit } from './orgJson'
 
 // Handle the creation of a new organization
 export function handleOrganizationCreated(event: OrganizationCreated): void {
