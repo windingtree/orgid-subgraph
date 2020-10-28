@@ -10,36 +10,61 @@ import { getJson } from "./ipfs"
 import { LegalEntity, OrganizationalUnit, OrganizationAddress, Organization } from "../generated/schema"
 
 // Get safely a property of an object
-function safeGet(jsonObject: TypedMap<string, JSONValue>, expectedKind: JSONValueKind, property: string,): JSONValue | null {
-    // Check presence
-    if(!jsonObject.isSet(property)) {
-      log.error('OrgJSON|{}|Missing property', [property])
-      return null
-    }
+function safeGet(jsonObject: TypedMap<string, JSONValue> | null, expectedKind: JSONValueKind, property: string): JSONValue | null {
+  if(jsonObject == null) {
+    return null
+  }
+  
+  // Check presence
+  if(!jsonObject.isSet(property)) {
+    log.error('OrgJSON|{}|Missing property', [property])
+    return null
+  }
 
-    // Get the property value
-    let value = jsonObject.get(property)
-    if(value.kind != expectedKind) {
-      log.error('OrgJSON|{}|Unexpected kind', [property])
-      return null
-    }
+  // Get the property value
+  let value = jsonObject.get(property)
+  if(value.kind != expectedKind) {
+    log.error('OrgJSON|{}|Unexpected kind', [property])
+    return null
+  }
 
-    return value
+  return value
+}
+
+// Get a propeperty as string
+function getStringProperty(jsonObject: TypedMap<string, JSONValue> | null, property: string): string | null {
+  let value = safeGet(jsonObject, JSONValueKind.STRING, property)
+  return value != null ? value.toString() : null
+}
+
+// Get a propeperty as object
+function getObjectProperty(jsonObject: TypedMap<string, JSONValue> | null, property: string): TypedMap<string, JSONValue> | null {
+  let value = safeGet(jsonObject, JSONValueKind.OBJECT, property)
+  return value != null ? value.toObject() : null
+}
+
+// Get a propperty as array
+function getArrayProperty(jsonObject: TypedMap<string, JSONValue> | null, property: string): Array<JSONValue> | null {
+  let value = safeGet(jsonObject, JSONValueKind.ARRAY, property)
+  return value != null ? value.toArray() : null
 }
 
 // Convert a JSON Value to an Address
-function toAddress(did: string, jsonValue: JSONValue): OrganizationAddress | null {
-  let jsonObject = jsonValue.toObject()
-  let outputAddress = OrganizationAddress.load(`addr:${did}`)
+function toAddress(did: string, jsonObject: TypedMap<string, JSONValue> | null): OrganizationAddress | null {
+  if(jsonObject == null) {
+    return null
+  }
+  
+  let outputAddress = OrganizationAddress.load(did)
   if(!outputAddress) {
     outputAddress = new OrganizationAddress(did)
   }
 
-  outputAddress.country = safeGet(jsonObject, JSONValueKind.STRING, 'country').toString()
-  outputAddress.subdivision = safeGet(jsonObject, JSONValueKind.STRING, 'subdivision').toString()
-  outputAddress.locality = safeGet(jsonObject, JSONValueKind.STRING, 'locality').toString()
-  outputAddress.streetAddress = safeGet(jsonObject, JSONValueKind.STRING, 'streetAddress').toString()
-  outputAddress.postalCode = safeGet(jsonObject, JSONValueKind.STRING, 'postalCode').toString()
+  outputAddress.country = getStringProperty(jsonObject, 'country')
+  outputAddress.subdivision = getStringProperty(jsonObject, 'subdivision')
+  outputAddress.locality = getStringProperty(jsonObject, 'locality')
+  outputAddress.streetAddress = getStringProperty(jsonObject, 'streetAddress')
+  outputAddress.postalCode = getStringProperty(jsonObject, 'postalCode')
 
   return outputAddress
 
@@ -51,34 +76,33 @@ function toLegalEntity(jsonValue: JSONValue): LegalEntity | null {
   let jsonObject = jsonValue.toObject()
       
   // Process DID
-  let didValue = safeGet(jsonObject, JSONValueKind.STRING, 'id')
-  if(!didValue) {
+  let did = getStringProperty(jsonObject, 'id')
+  if(!did) {
     log.error('orgJson|{}|Missing did', [])
     return null
   }
-  let did = didValue.toString()
+
   let outputLegalEntity = LegalEntity.load(did)
   if(!outputLegalEntity) {
     outputLegalEntity = new LegalEntity(did)
   }
   
   // Handle Legal Entity
-  let legalEntityValue = safeGet(jsonObject, JSONValueKind.OBJECT, 'legalEntity')
-  if(!legalEntityValue) {
+  let legalEntityObject = getObjectProperty(jsonObject, 'legalEntity')
+  if(!legalEntityObject) {
     log.error('orgJson|{}|Missing legalEntityValue', [did])
     return null
   }
-  let legalEntityObject = legalEntityValue.toObject()
   
   // Handle legal name presence
-  outputLegalEntity.legalName = safeGet(legalEntityObject, JSONValueKind.STRING, 'legalName').toString()
-  outputLegalEntity.legalType = safeGet(legalEntityObject, JSONValueKind.STRING, 'legalType').toString()
-  outputLegalEntity.legalIdentifier = safeGet(legalEntityObject, JSONValueKind.STRING, 'legalIdentifier').toString()
+  outputLegalEntity.legalName = getStringProperty(legalEntityObject, 'legalName')
+  outputLegalEntity.legalType = getStringProperty(legalEntityObject, 'legalType')
+  outputLegalEntity.legalIdentifier = getStringProperty(legalEntityObject, 'legalIdentifier')
   
   // Handle the address
-  let addressValue = safeGet(legalEntityObject, JSONValueKind.OBJECT, 'registeredAddress')
-  if(addressValue) {
-    let address = toAddress(did, addressValue as JSONValue)
+  let addressObject = getObjectProperty(legalEntityObject, 'registeredAddress')
+  if(addressObject) {
+    let address = toAddress(did, addressObject)
     if(address) {
       address.save()
       outputLegalEntity.registeredAddress = address.id
@@ -94,37 +118,37 @@ function toOrganizationalUnit(jsonValue: JSONValue): OrganizationalUnit | null {
   let jsonObject = jsonValue.toObject()
       
   // Process DID
-  let didValue = safeGet(jsonObject, JSONValueKind.STRING, 'id')
-  if(!didValue) {
+  let did = getStringProperty(jsonObject, 'id')
+  if(!did) {
     log.error('orgJson|{}|Missing did', [])
     return null
   }
-  let did = didValue.toString()
+
   let outputOrganizationalUnit = OrganizationalUnit.load(did)
   if(!outputOrganizationalUnit) {
     outputOrganizationalUnit = new OrganizationalUnit(did)
   }
   
   // Handle Legal Entity
-  let outputOrganizationalUnitValue = safeGet(jsonObject, JSONValueKind.OBJECT, 'organizationalUnit')
-  if(!outputOrganizationalUnitValue) {
+  let organizationalUnitObject = getObjectProperty(jsonObject, 'organizationalUnit')
+  if(!organizationalUnitObject) {
     log.error('orgJson|{}|Missing organizationalUnit', [did])
     return null
   }
-  let organizationalUnitObject = outputOrganizationalUnitValue.toObject()
   
   // Handle legal name presence
-  outputOrganizationalUnit.name = safeGet(organizationalUnitObject, JSONValueKind.STRING, 'name').toString()
-  let types: Array<JSONValue> = safeGet(organizationalUnitObject, JSONValueKind.ARRAY, 'type').toArray()
-  
-  outputOrganizationalUnit.type = types.map<string>((value: JSONValue) => value.toString())
-  outputOrganizationalUnit.description = safeGet(organizationalUnitObject, JSONValueKind.STRING, 'description').toString()
-  outputOrganizationalUnit.longDescription = safeGet(organizationalUnitObject, JSONValueKind.STRING, 'longDescription').toString()
+  outputOrganizationalUnit.name = getStringProperty(organizationalUnitObject, 'name')
+  let types = getArrayProperty(organizationalUnitObject, 'type')
+  if(types != null) {
+    outputOrganizationalUnit.type = (types as Array<JSONValue>).map<string>((value: JSONValue) => value.toString())
+  }
+  outputOrganizationalUnit.description = getStringProperty(organizationalUnitObject, 'description')
+  outputOrganizationalUnit.longDescription = getStringProperty(organizationalUnitObject, 'longDescription')
 
   // Handle the address
-  let addressValue = safeGet(organizationalUnitObject, JSONValueKind.OBJECT, 'address')
-  if(addressValue) {
-    let address = toAddress(did, addressValue as JSONValue)
+  let addressObject = getObjectProperty(organizationalUnitObject, 'address')
+  if(addressObject) {
+    let address = toAddress(did, addressObject)
     if(address) {
       address.save()
       outputOrganizationalUnit.address = address.id
