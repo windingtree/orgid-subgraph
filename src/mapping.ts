@@ -21,23 +21,29 @@ export function handleOrganizationCreated(event: OrganizationCreated): void {
     // Update creation time
     organization.createdAtTimestamp = event.block.timestamp
     organization.createdAtBlockNumber = event.block.number
+    organization.organizationType = 'LegalEntity'
     
 
     // Add JSON IPFS CID
     if(organization.orgJsonHash) {
       organization.ipfsCid = cidFromHash(organization.orgJsonHash as Bytes)
-      let orgJson = resolve(event.params.orgId.toHexString(), organization.ipfsCid)
+      let orgJson = resolve(organization.id, organization.ipfsCid)
 
-      // Add LegalEntity
-      if(orgJson.legalEntity) {
-        organization.legalEntity = orgJson.legalEntity.id
+      if(orgJson) {
+        // Add LegalEntity
+        if(orgJson.legalEntity) {
+          organization.legalEntity = orgJson.legalEntity.id
+        }
+
+        // Add other attributes
+        
+        if(orgJson.publicKey) {
+          organization.publicKey = orgJson.publicKey.map<string>((value: PublicKey) => value.id)
+        }
+        if(orgJson.service) {
+          organization.service = orgJson.service.map<string>((value: Service) => value.id)
+        }
       }
-
-      // Add other attributes
-      organization.organizationType = orgJson.organizationalType
-      organization.publicKey = orgJson.publicKey.map<string>((value: PublicKey) => value.id)
-      organization.service = orgJson.service.map<string>((value: Service) => value.id)
-
     }
 
     // Save organization
@@ -53,21 +59,28 @@ export function handleUnitCreated(event: UnitCreated): void {
     // Update creation time
     unit.createdAtTimestamp = event.block.timestamp
     unit.createdAtBlockNumber = event.block.number
+    unit.organizationType = 'OrganizationalUnit'
     
     // Add JSON IPFS CID
     if(unit.orgJsonHash) {
       unit.ipfsCid = cidFromHash(unit.orgJsonHash as Bytes)
-      let orgJson = resolve(event.params.unitOrgId.toHexString(), unit.ipfsCid)
+      let orgJson = resolve(unit.id, unit.ipfsCid)
 
-      // Add LegalEntity
-      if(orgJson.organizationalUnit) {
-        unit.organizationalUnit = orgJson.organizationalUnit.id
+      if(orgJson) {
+        // Add LegalEntity
+        if(orgJson.organizationalUnit) {
+          unit.organizationalUnit = orgJson.organizationalUnit.id
+        }
+
+        // Add other attributes
+        unit.organizationType = orgJson.organizationalType
+        if(orgJson.publicKey) {
+          unit.publicKey = orgJson.publicKey.map<string>((value: PublicKey) => value.id)
+        }
+        if(orgJson.service) {
+          unit.service = orgJson.service.map<string>((value: Service) => value.id)
+        } 
       }
-
-      // Add other attributes
-      unit.organizationType = orgJson.organizationalType
-      unit.publicKey = orgJson.publicKey.map<string>((value: PublicKey) => value.id)
-      unit.service = orgJson.service.map<string>((value: Service) => value.id)
     }
 
     // Save organization
@@ -83,22 +96,28 @@ export function handleOrgJsonChanged(event: OrgJsonChanged): void {
     // Update Hash and CID
     organization.orgJsonHash = event.params.newOrgJsonHash
     organization.ipfsCid = cidFromHash(event.params.newOrgJsonHash)
-    let orgJson = resolve(event.params.orgId.toHexString(), organization.ipfsCid)
+    let orgJson = resolve(organization.id, organization.ipfsCid)
 
-    // Add LegalEntity
-    if(orgJson.legalEntity) {
-      organization.legalEntity = orgJson.legalEntity.id
+    if(orgJson) {
+      // Add LegalEntity
+      if(orgJson.legalEntity) {
+        organization.legalEntity = orgJson.legalEntity.id
+      }
+
+      // Add Organizational Unit
+      if(orgJson.organizationalUnit) {
+        organization.organizationalUnit = orgJson.organizationalUnit.id
+      }
+
+      // Add other attributes
+      organization.organizationType = orgJson.organizationalType
+      if(orgJson.publicKey) {
+        organization.publicKey = orgJson.publicKey.map<string>((value: PublicKey) => value.id)
+      }
+      if(orgJson.service) {
+        organization.service = orgJson.service.map<string>((value: Service) => value.id)
+      }
     }
-
-    // Add Organizational Unit
-    if(orgJson.organizationalUnit) {
-      organization.organizationalUnit = orgJson.organizationalUnit.id
-    }
-
-    // Add other attributes
-    organization.organizationType = orgJson.organizationalType
-    organization.publicKey = orgJson.publicKey.map<string>((value: PublicKey) => value.id)
-    organization.service = orgJson.service.map<string>((value: Service) => value.id)
 
     organization.save()
   }

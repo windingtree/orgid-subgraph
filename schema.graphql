@@ -57,6 +57,7 @@ type OrganizationalUnit @entity {
 }
 
 enum OrganizationType {
+  Unknown
   LegalEntity
   OrganizationalUnit
 }
