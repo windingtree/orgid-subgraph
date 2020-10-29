@@ -10,7 +10,7 @@ Get 5 random ORGiDs, their owner and the country of the legal entity:
 
 ```shell
 curl -X POST \
-    -d '{ "query": "query { organizations(first: 5) { id owner legalEntity { country }}}" }' \
+    -d '{ "query": "query { organizations(first: 5) { id owner legalEntity service }}" }' \
     https://api.thegraph.com/subgraphs/name/windingtree/orgid-subgraph
 ```
 
@@ -107,10 +107,16 @@ Create an access token and store it locally. `<ACCESS_TOKEN>` is from [The Graph
 graph auth https://api.thegraph.com/deploy/ <ACCESS_TOKEN>
 ```
 
-Then deploy:
+Then deploy, for example in Mainnet:
 
 ```shell
-yarn deploy
+yarn deploy:mainnet
+```
+
+For Ropten:
+
+```shell
+yarn deploy:ropsten
 ```
 
 Status on the syncronization can be retrieved using:
