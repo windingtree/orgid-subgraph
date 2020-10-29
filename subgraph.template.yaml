@@ -19,7 +19,7 @@ dataSources:
         - Organization
       abis:
         - name: Orgid
-          file: ./abis/Orgid.json
+          file: ./abis/Orgid-{{orgIdVersion}}.json
       eventHandlers:
         - event: DirectorshipAccepted(indexed bytes32,indexed address)
           handler: handleDirectorshipAccepted

@@ -4,10 +4,10 @@
   "description": "The ORGiD subgraph maps the ORGiD Contract with events in GraphQL",
   "license": "GPL-3.0-only",
   "scripts": {
-    "codegen": "graph codegen",
+    "codegen": "graph codegen && mustache config/mainnet.json src/constants.template.ts > src/constants.ts",
     "build": "graph build",
-    "prepare:mainnet": "mustache config/mainnet.json subgraph.template.yaml > subgraph.yaml",
-    "prepare:ropsten": "mustache config/ropsten.json subgraph.template.yaml > subgraph.yaml",
+    "prepare:mainnet": "mustache config/mainnet.json subgraph.template.yaml > subgraph.yaml && mustache config/ropsten.json src/constants.template.ts > src/constants.ts",
+    "prepare:ropsten": "mustache config/ropsten.json subgraph.template.yaml > subgraph.yaml && mustache config/mainnet.json src/constants.template.ts > src/constants.ts",
     "deploy:mainnet": "yarn prepare:mainnet && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ windingtree/orgid-subgraph",
     "deploy:ropsten": "yarn prepare:ropsten && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ windingtree/orgid-subgraph-ropsten",
     "create-local": "graph create --node http://localhost:8020/ windingtree/orgid-subgraph",
