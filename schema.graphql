@@ -11,7 +11,9 @@ type OrganizationAddress @entity {
 
 # The type of public keys
 enum PublicKeyType {
+  Unknown
   secp256k1
+  X25519
 }
 
 # A public Key

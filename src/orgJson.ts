@@ -97,6 +97,7 @@ function toPublicKey(did: string, jsonObject: TypedMap<string, JSONValue> | null
 
   if((id == null) || (pem == null) || (type == null)) {
     log.error('OrgJSON|{}|Missing mandatory Public Key properties', [did])
+    return null
   }
   
   let outputPublicKey = PublicKey.load(id)
@@ -124,6 +125,7 @@ function toService(did: string, jsonObject: TypedMap<string, JSONValue> | null):
 
   if((id == null) || (serviceEndpoint == null)) {
     log.error('OrgJSON|{}|Missing mandatory Service properties', [did])
+    return null
   }
   
   let outputService = Service.load(id)

@@ -6,11 +6,11 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: Contract
-    network: mainnet
+    network: {{network}}
     source:
-      address: "0x6434DEC2f4548C2aA9D88E8Ff821f387be3D7F0D"
+      address: '{{orgIdAddress}}'
       abi: Orgid
-      startBlock: 10362794
+      startBlock: {{startBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -19,7 +19,7 @@ dataSources:
         - Organization
       abis:
         - name: Orgid
-          file: ./abis/Orgid.json
+          file: ./abis/Orgid-{{orgIdVersion}}.json
       eventHandlers:
         - event: DirectorshipAccepted(indexed bytes32,indexed address)
           handler: handleDirectorshipAccepted
