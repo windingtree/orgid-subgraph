@@ -7,9 +7,11 @@ import {
   OrganizationOwnershipTransferred,
   UnitCreated,
 } from '../generated/Contract/Orgid'
-import { Bytes } from "@graphprotocol/graph-ts"
+import { Bytes, log } from "@graphprotocol/graph-ts"
 import { getOrganizationFromContract } from './orgid'
-import { cidFromHash, getLegalEntity, getOrganizationalUnit } from './ipfs'
+import { cidFromHash } from './ipfs'
+import { resolve } from './orgJson'
+import { PublicKey, Service } from '../generated/schema'
 
 // Handle the creation of a new organization
 export function handleOrganizationCreated(event: OrganizationCreated): void {
@@ -19,17 +21,28 @@ export function handleOrganizationCreated(event: OrganizationCreated): void {
     // Update creation time
     organization.createdAtTimestamp = event.block.timestamp
     organization.createdAtBlockNumber = event.block.number
+    organization.organizationType = 'LegalEntity'
+    
 
     // Add JSON IPFS CID
     if(organization.orgJsonHash) {
       organization.ipfsCid = cidFromHash(organization.orgJsonHash as Bytes)
+      let orgJson = resolve(organization.id, organization.ipfsCid)
 
-      // Add LegalEntity
-      let legalEntity = getLegalEntity(organization.ipfsCid)
-      if(legalEntity) {
-        legalEntity.organization = organization.id
-        legalEntity.save()
-        organization.legalEntity = legalEntity.id
+      if(orgJson) {
+        // Add LegalEntity
+        if(orgJson.legalEntity) {
+          organization.legalEntity = orgJson.legalEntity.id
+        }
+
+        // Add other attributes
+        
+        if(orgJson.publicKey) {
+          organization.publicKey = orgJson.publicKey.map<string>((value: PublicKey) => value.id)
+        }
+        if(orgJson.service) {
+          organization.service = orgJson.service.map<string>((value: Service) => value.id)
+        }
       }
     }
 
@@ -46,16 +59,27 @@ export function handleUnitCreated(event: UnitCreated): void {
     // Update creation time
     unit.createdAtTimestamp = event.block.timestamp
     unit.createdAtBlockNumber = event.block.number
-
+    unit.organizationType = 'OrganizationalUnit'
+    
     // Add JSON IPFS CID
     if(unit.orgJsonHash) {
       unit.ipfsCid = cidFromHash(unit.orgJsonHash as Bytes)
+      let orgJson = resolve(unit.id, unit.ipfsCid)
 
-      // Add OrganizationalUnit
-      let organizationalUnit = getOrganizationalUnit(unit.ipfsCid)
-      if(organizationalUnit) {
-        organizationalUnit.save()
-        unit.organizationalUnit = organizationalUnit.id
+      if(orgJson) {
+        // Add LegalEntity
+        if(orgJson.organizationalUnit) {
+          unit.organizationalUnit = orgJson.organizationalUnit.id
+        }
+
+        // Add other attributes
+        unit.organizationType = orgJson.organizationalType
+        if(orgJson.publicKey) {
+          unit.publicKey = orgJson.publicKey.map<string>((value: PublicKey) => value.id)
+        }
+        if(orgJson.service) {
+          unit.service = orgJson.service.map<string>((value: Service) => value.id)
+        } 
       }
     }
 
@@ -64,7 +88,40 @@ export function handleUnitCreated(event: UnitCreated): void {
   }
 }
 
-export function handleOrgJsonChanged(event: OrgJsonChanged): void {}
+export function handleOrgJsonChanged(event: OrgJsonChanged): void {
+  // Retrieve the organization
+  let organization = getOrganizationFromContract(event.params.orgId)
+  if(organization) {
+
+    // Update Hash and CID
+    organization.orgJsonHash = event.params.newOrgJsonHash
+    organization.ipfsCid = cidFromHash(event.params.newOrgJsonHash)
+    let orgJson = resolve(organization.id, organization.ipfsCid)
+
+    if(orgJson) {
+      // Add LegalEntity
+      if(orgJson.legalEntity) {
+        organization.legalEntity = orgJson.legalEntity.id
+      }
+
+      // Add Organizational Unit
+      if(orgJson.organizationalUnit) {
+        organization.organizationalUnit = orgJson.organizationalUnit.id
+      }
+
+      // Add other attributes
+      organization.organizationType = orgJson.organizationalType
+      if(orgJson.publicKey) {
+        organization.publicKey = orgJson.publicKey.map<string>((value: PublicKey) => value.id)
+      }
+      if(orgJson.service) {
+        organization.service = orgJson.service.map<string>((value: Service) => value.id)
+      }
+    }
+
+    organization.save()
+  }
+}
 
 // Handle the change of status of an organization
 export function handleOrganizationActiveStateChanged(event: OrganizationActiveStateChanged): void {

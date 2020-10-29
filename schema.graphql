@@ -1,9 +1,45 @@
+# An address
+type OrganizationAddress @entity {
+  id: ID!
+  country: String
+  subdivision: String
+  locality: String
+  postalCode: String
+  streetAddress: String
+  premise: String
+}
+
+# The type of public keys
+enum PublicKeyType {
+  secp256k1
+}
+
+# A public Key
+type PublicKey @entity {
+  id: ID!
+  type: PublicKeyType!
+  publicKeyPem: String!
+  controller: String
+  note: String
+}
+
+# An API Service
+type Service @entity {
+  id: ID!
+  serviceEndpoint: String!
+  type: String
+  version: String
+  description: String
+  docs: String
+}
+
 # Define the Legal Entity type
 type LegalEntity @entity {
   id: ID!
   legalName: String
   legalType: String
-  country: String
+  legalIdentifier: String
+  registeredAddress: OrganizationAddress
   logoUri: String
   organization: Organization
 }
@@ -12,16 +48,25 @@ type LegalEntity @entity {
 type OrganizationalUnit @entity {
   id: ID!
   name: String
+  description: String
+  longDescription: String
   type: [String!]
-  country: String
+  address: OrganizationAddress
   logoUri: String
   organization: Organization
+}
+
+enum OrganizationType {
+  Unknown
+  LegalEntity
+  OrganizationalUnit
 }
 
 # Define an Organization
 type Organization @entity {
   # ORGiD value
   id: ID!
+  did: String
 
   # Mirrored from Smart-contract
   owner: Bytes! # address
@@ -35,8 +80,11 @@ type Organization @entity {
   parent: Organization
 
   # From offchain data
+  organizationType: OrganizationType!
   legalEntity: LegalEntity
   organizationalUnit: OrganizationalUnit
+  publicKey: [PublicKey!]
+  service: [Service!]
 
   # Creation stats
   createdAtTimestamp: BigInt!
