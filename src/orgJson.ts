@@ -105,6 +105,12 @@ function toPublicKey(did: string, jsonObject: TypedMap<string, JSONValue> | null
     outputPublicKey = new PublicKey(id)
   }
 
+  if(type == 'ETH' || type == 'secp256k1' || type == 'X25519') {
+    outputPublicKey.type = type
+  } else {
+    outputPublicKey.type = 'Unknown'
+  }
+
   outputPublicKey.type = type
   outputPublicKey.publicKeyPem = pem
   outputPublicKey.controller = getStringProperty(jsonObject, 'controller')
