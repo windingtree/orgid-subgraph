@@ -10,7 +10,7 @@ Get 5 random ORGiDs, their owner and the country of the legal entity:
 
 ```shell
 curl -X POST \
-    -d '{ "query": "query { organizations(first: 5) { id owner legalEntity service }}" }' \
+    -d '{ "query": "query { organizations(first: 5) { id owner legalEntity { legalName } service {id} }}" }' \
     https://api.thegraph.com/subgraphs/name/windingtree/orgid-subgraph
 ```
 
