@@ -1,3 +1,10 @@
+# GPS Coordinates
+type Point @entity {
+  id: ID!
+  latitude: BigDecimal
+  longitude: BigDecimal
+}
+
 # An address
 type OrganizationAddress @entity {
   id: ID!
@@ -7,6 +14,7 @@ type OrganizationAddress @entity {
   postalCode: String
   streetAddress: String
   premise: String
+  gps: Point
 }
 
 # The type of public keys

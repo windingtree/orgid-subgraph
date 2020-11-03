@@ -2,7 +2,8 @@ import {
   JSONValue,
   JSONValueKind,
   log,
-  TypedMap
+  TypedMap,
+  BigDecimal,
 } from "@graphprotocol/graph-ts"
   
 import { getJson } from "./ipfs"
@@ -12,6 +13,7 @@ import {
   OrganizationAddress,
   PublicKey,
   Service,
+  Point
 } from "../generated/schema"
 
 // Structure to provide the parsed data
@@ -75,11 +77,29 @@ function toAddress(did: string, jsonObject: TypedMap<string, JSONValue> | null):
     outputAddress = new OrganizationAddress(did)
   }
 
+  // Handle elements of the address
   outputAddress.country = getStringProperty(jsonObject, 'country')
   outputAddress.subdivision = getStringProperty(jsonObject, 'subdivision')
   outputAddress.locality = getStringProperty(jsonObject, 'locality')
   outputAddress.streetAddress = getStringProperty(jsonObject, 'streetAddress')
   outputAddress.postalCode = getStringProperty(jsonObject, 'postalCode')
+
+  // Handle coordinates
+  let gpsCoordinates = getStringProperty(jsonObject, 'gps')
+  if(gpsCoordinates) {
+    let parts = gpsCoordinates.split(',')
+    if(!parts || parts.length != 2) {
+      log.error('OrgJSON|{}|Invalid GPS Coordinates format', [did])
+    } else {
+      let latitude = BigDecimal.fromString(parts[0])
+      let longitude = BigDecimal.fromString(parts[1])
+      if(latitude && longitude) {
+        let point = new Point(did)
+        point.save()
+        outputAddress.gps = point.id
+      }
+    }
+  }
 
   return outputAddress
 
