@@ -6,12 +6,12 @@ import {
   OrganizationCreated,
   OrganizationOwnershipTransferred,
   UnitCreated,
-} from '../generated/OrgIdContract/OrgId'
+} from '../../generated/OrgIdContract/OrgId'
 import { Bytes, log } from "@graphprotocol/graph-ts"
-import { getOrganizationFromContract } from './orgId'
-import { cidFromHash } from './ipfs'
-import { resolve } from './orgJson'
-import { PublicKey, Service } from '../generated/schema'
+import { getOrganizationFromContract } from '../orgId'
+import { cidFromHash } from '../ipfs'
+import { resolve } from '../orgJson'
+import { PublicKey, Service } from '../../generated/schema'
 
 // Handle the creation of a new organization
 export function handleOrganizationCreated(event: OrganizationCreated): void {

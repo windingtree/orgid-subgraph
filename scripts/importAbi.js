@@ -5,16 +5,15 @@ const {
 } = require('@windingtree/org.id');
 
 const {
-  DirectoryContract,
   DirectoryIndexContract,
-  DirectoryInterfaceContract,
-  DirectoryIndexInterfaceContract,
+  ArbitrableDirectoryContract,
 } = require('@windingtree/org.id-directories');
 
 // Define the list of contracts to import
 const contracts = [
   OrgIdContract,
   DirectoryIndexContract,
+  ArbitrableDirectoryContract,
 ];
 
 // Write the ABI of a contract build to a path on the filesystem

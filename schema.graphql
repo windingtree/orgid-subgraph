@@ -146,25 +146,25 @@ type Organization @entity {
   createdAtBlockNumber: BigInt!
 }
 
-type Segment @entity {
-  "ID is set to the segment contract address"
+type Directory @entity {
+  "ID is set to the directory contract address"
   id: ID!
-  "Name of the segment"
+  "Name of the directory"
   name: String!
-  "List of Organizations in this segment"
+  "List of Organizations in this directory"
   organizations: [Organization!]
-  "Indicates if the segment has been archived"
+  "Indicates if the directory has been archived"
   isRemoved: Boolean!
 
   # Creation stats
-  "Timestamp of the segment addition in official index"
+  "Timestamp of the directory addition in official index"
   addedAtTimestamp: BigInt!
-  "Block number when the segment was added in the official index"
+  "Block number when the directory was added in the official index"
   addedAtBlockNumber: BigInt!
 
   # Removal stats
-  "Timestamp of the segment removal from the official index"
+  "Timestamp of the directory removal from the official index"
   removedAtTimestamp: BigInt
-  "Block number when the segment was removed from the official index"
+  "Block number when the directory was removed from the official index"
   removedAtBlockNumber: BigInt
 }
