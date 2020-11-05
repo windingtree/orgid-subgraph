@@ -5,7 +5,7 @@ schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum/contract
-    name: Contract
+    name: Orgid
     network: {{network}}
     source:
       address: '{{orgIdAddress}}'

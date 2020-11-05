@@ -68,7 +68,7 @@ docker-compose up
 Generate code:
 
 ```shell
-yarn codegen
+yarn codegen:mainnet
 ```
 
 Build the subgraph:

@@ -31,7 +31,7 @@ export function getOrganizationFromContract(id: Bytes): Organization | null {
 
   // Check if the call reverted
   if(getOrganizationCallResult.reverted) {
-    log.warning("getOrganization reverted", [])
+    log.warning("getOrganization reverted: {}", [id.toHex()])
     return null
   }
 

@@ -4,10 +4,13 @@
   "description": "The ORGiD subgraph maps the ORGiD Contract with events in GraphQL",
   "license": "GPL-3.0-only",
   "scripts": {
-    "codegen": "graph codegen && mustache config/mainnet.json src/constants.template.ts > src/constants.ts",
+    "codegen:graph": "graph codegen",
+    "codegen:abi": "",
+    "codegen:ropsten": "yarn codegen:graph && yarn codegen:abi && mustache config/ropsten.json src/constants.template.ts > src/constants.ts",
+    "codegen:mainnet": "yarn codegen:graph && yarn codegen:abi && mustache config/mainnet.json src/constants.template.ts > src/constants.ts",
     "build": "graph build",
-    "prepare:ropsten": "mustache config/ropsten.json subgraph.template.yaml > subgraph.yaml && mustache config/ropsten.json src/constants.template.ts > src/constants.ts",
-    "prepare:mainnet": "mustache config/mainnet.json subgraph.template.yaml > subgraph.yaml && mustache config/mainnet.json src/constants.template.ts > src/constants.ts",
+    "prepare:ropsten": "yarn codegen:ropsten && mustache config/ropsten.json subgraph.template.yaml > subgraph.yaml",
+    "prepare:mainnet": "yarn codegen:mainnet && mustache config/mainnet.json subgraph.template.yaml > subgraph.yaml",
     "deploy:ropsten": "yarn prepare:ropsten && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ windingtree/orgid-subgraph-ropsten",
     "deploy:mainnet": "yarn prepare:mainnet && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ windingtree/orgid-subgraph",
     "deploy": "yarn deploy:ropsten && yarn deploy:mainnet",
@@ -18,6 +21,7 @@
   "dependencies": {
     "@graphprotocol/graph-cli": "0.18.0",
     "@graphprotocol/graph-ts": "0.18.0",
+    "@windingtree/org.id-directories": "^0.11.1",
     "mustache": "^4.0.1"
   }
 }
