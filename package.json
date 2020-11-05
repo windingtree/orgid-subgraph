@@ -5,7 +5,7 @@
   "license": "GPL-3.0-only",
   "scripts": {
     "codegen:graph": "graph codegen",
-    "codegen:abi": "",
+    "codegen:abi": "node ./scripts/importAbi.js",
     "codegen:ropsten": "yarn codegen:graph && yarn codegen:abi && mustache config/ropsten.json src/constants.template.ts > src/constants.ts",
     "codegen:mainnet": "yarn codegen:graph && yarn codegen:abi && mustache config/mainnet.json src/constants.template.ts > src/constants.ts",
     "build": "graph build",
@@ -21,6 +21,7 @@
   "dependencies": {
     "@graphprotocol/graph-cli": "0.18.0",
     "@graphprotocol/graph-ts": "0.18.0",
+    "@windingtree/org.id": "^1.1.1",
     "@windingtree/org.id-directories": "^0.11.1",
     "mustache": "^4.0.1"
   }

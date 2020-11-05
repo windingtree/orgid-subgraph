@@ -1,6 +1,5 @@
 {
     "network": "ropsten",
     "orgIdAddress": "0x2cb8dCf26830B969555E04C2EDe3fc1D1BaD504E",
-    "orgIdVersion": "1.1.0",
     "startBlock": 8160736
 }
