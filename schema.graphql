@@ -1,19 +1,30 @@
 # GPS Coordinates
 type Point @entity {
+  "ID is set to the ORGiD value"
   id: ID!
+  "GPS Latitude"
   latitude: BigDecimal
+  "GPS Longitude"
   longitude: BigDecimal
 }
 
 # An address
 type OrganizationAddress @entity {
+  "ID is set to the ORGiD value"
   id: ID!
+  "2-letters code of the country as per ISO standard"
   country: String
+  "Country subdivision such as state or region"
   subdivision: String
+  "Locality or City name"
   locality: String
+  "Postal or Zip Code"
   postalCode: String
+  "Street Address"
   streetAddress: String
+  "Name or number of the premise"
   premise: String
+  "GPS Coordinates of the location"
   gps: Point
 }
 
@@ -36,34 +47,51 @@ type PublicKey @entity {
 
 # An API Service
 type Service @entity {
+  "ID of the service as per W3C DID"
   id: ID!
+  "Service Endpoint or Base URL for the service requests"
   serviceEndpoint: String!
+  "Type of service"
   type: String
+  "Version of service"
   version: String
+  "Description of the service"
   description: String
+  "URL for documentation of the API"
   docs: String
 }
 
 # Define the Legal Entity type
 type LegalEntity @entity {
+  "ID is set to the W3C DID value"
   id: ID!
+  "Legal name of the entity"
   legalName: String
+  "Legal type of the entity"
   legalType: String
+  "Legal identifier in the national business registry of the entity"
   legalIdentifier: String
+  "Legal address of the entity"
   registeredAddress: OrganizationAddress
-  logoUri: String
+  "Associated Organization entity"
   organization: Organization
 }
 
 # Define the Organizational Unit type
 type OrganizationalUnit @entity {
+  "ID is set to the W3C DID value"
   id: ID!
+  "Name of the entity"
   name: String
+  "Description of the entity"
   description: String
+  "Longer description of the entity"
   longDescription: String
+  "Types of this entity (informative)"
   type: [String!]
+  "Address of the entity"
   address: OrganizationAddress
-  logoUri: String
+  "Associated Organization entity"
   organization: Organization
 }
 
@@ -76,28 +104,67 @@ enum OrganizationType {
 # Define an Organization
 type Organization @entity {
   # ORGiD value
+  "ID is set to the ORGiD value"
   id: ID!
+  "did is set to the W3C DID value"
   did: String
 
   # Mirrored from Smart-contract
+  "Ethereum address of the owner of the organization"
   owner: Bytes! # address
+  "Active status of the entity"
   isActive: Boolean
+  "Ethereum address of the director of the organization"
   director: Bytes # address
+  "keccak-256 hash of the associated JSON file"
   orgJsonHash: Bytes
+  "IPFS CID of the JSON file"
   ipfsCid: String
 
   # Mapping with other Organizations
+  "Sub-units of this organization"
   units: [Organization!]
+  "Parent organization"
   parent: Organization
 
   # From offchain data
+  "Type of organization (LegalEntity or OrganizationalUnit)"
   organizationType: OrganizationType!
+  "Associated Legal Entity object for Legal Entities (null otherwise)"
   legalEntity: LegalEntity
+  "Associated OrganizationalUnit object for Organizational Units  (null otherwise)"
   organizationalUnit: OrganizationalUnit
+  "Array of Public Keys associated with the Organization"
   publicKey: [PublicKey!]
+  "Array of Services associated with the Organization"
   service: [Service!]
 
   # Creation stats
+  "Timestamp of the Organization Creation"
   createdAtTimestamp: BigInt!
+  "Block number when the organization was created"
   createdAtBlockNumber: BigInt!
+}
+
+type Segment @entity {
+  "ID is set to the segment contract address"
+  id: ID!
+  "Name of the segment"
+  name: String!
+  "List of Organizations in this segment"
+  organizations: [Organization!]
+  "Indicates if the segment has been archived"
+  isRemoved: Boolean!
+
+  # Creation stats
+  "Timestamp of the segment addition in official index"
+  addedAtTimestamp: BigInt!
+  "Block number when the segment was added in the official index"
+  addedAtBlockNumber: BigInt!
+
+  # Removal stats
+  "Timestamp of the segment removal from the official index"
+  removedAtTimestamp: BigInt
+  "Block number when the segment was removed from the official index"
+  removedAtBlockNumber: BigInt
 }
