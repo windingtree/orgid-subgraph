@@ -32,7 +32,7 @@ const writeContractAbi = (abi, path) => {
 
 // Write all required ABIs
 Promise.all(contracts.map(contract => writeContractAbi(contract.abi, `abis/${contract.contractName}.json`)))
-.then(() => console.log('Success'))
+.then(() => console.log('✔ ABIs Imported'))
 .catch(console.error);
 
 

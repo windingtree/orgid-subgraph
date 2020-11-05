@@ -9,13 +9,13 @@ import {
 } from "./constants"
 
 import {
-  Orgid as OrgidContract,
-} from "../generated/Contract/Orgid"
+  OrgId as OrgIdContract,
+} from "../generated/OrgIdContract/Orgid"
 
 import { Organization } from "../generated/schema"
 
 // ORGiD Contract
-export let orgidContract = OrgidContract.bind(Address.fromString(ORGID_ADDRESS))
+export let orgidContract = OrgIdContract.bind(Address.fromString(ORGID_ADDRESS))
 
 // Get organization from contract
 export function getOrganizationFromContract(id: Bytes): Organization | null {

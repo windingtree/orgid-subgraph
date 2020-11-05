@@ -5,12 +5,12 @@ schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum/contract
-    name: Orgid
+    name: OrgIdContract
     network: {{network}}
     source:
       address: '{{orgIdAddress}}'
-      abi: Orgid
-      startBlock: {{startBlock}}
+      abi: OrgId
+      startBlock: {{orgIdStartBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -18,8 +18,8 @@ dataSources:
       entities:
         - Organization
       abis:
-        - name: Orgid
-          file: ./abis/Orgid.json
+        - name: OrgId
+          file: ./abis/OrgId.json
       eventHandlers:
         - event: DirectorshipAccepted(indexed bytes32,indexed address)
           handler: handleDirectorshipAccepted
@@ -35,4 +35,26 @@ dataSources:
           handler: handleOrganizationOwnershipTransferred
         - event: UnitCreated(indexed bytes32,indexed bytes32,indexed address)
           handler: handleUnitCreated
-      file: ./src/mapping.ts
+      file: ./src/orgIdmapping.ts
+  - kind: ethereum/contract
+    name: DirectoryIndex
+    network: {{network}}
+    source:
+      address: '{{directoryIndexAddress}}'
+      abi: DirectoryIndex
+      startBlock: {{directoryIndexStartBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - Segment
+      abis:
+        - name: DirectoryIndex
+          file: ./abis/DirectoryIndex.json
+      eventHandlers:
+        - event: SegmentAdded(indexed address,indexed uint256)
+          handler: handleSegmentAdded
+        - event: SegmentRemoved(indexed address)
+          handler: handleSegmentRemoved
+      file: ./src/directoryIndexMapping.ts

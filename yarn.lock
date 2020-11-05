@@ -119,22 +119,15 @@
   resolved "https://registry.yarnpkg.com/@types/range-parser/-/range-parser-1.2.3.tgz#7ee330ba7caafb98090bece86a5ee44115904c2c"
   integrity sha512-ewFXqrQHlFsgc09MK5jP5iR7vumV/BYayNC6PgJO2LPe8vrnNFyjQjSppfEngITi0qvfKtzFvgKymGheFM9UOA==
 
-"@windingtree/org.id-directories@^0.11.1":
-  version "0.11.1"
-  resolved "https://registry.yarnpkg.com/@windingtree/org.id-directories/-/org.id-directories-0.11.1.tgz#1870816545d5c91dca073d76bb2376ce32de2db4"
-  integrity sha512-1sBC5lRZXbmontpkkCcAFUHVbougKlCPilME1VSOSZWZc/Jkoz50J7dS0F8wVJkkWjnRg1DWpttPU4d2GCJDIg==
+"@windingtree/org.id-directories@^0.18.0":
+  version "0.18.0"
+  resolved "https://registry.yarnpkg.com/@windingtree/org.id-directories/-/org.id-directories-0.18.0.tgz#109564bc7f903046bac27ed6bcb525568233c452"
+  integrity sha512-uFY4Az5pNDq9thRqabyCyZFsB2qg+ymdF2KXi331gj2sQhgiiZflfEenFPuC7RTTII5Io9Yhs8SU+q6/aWGYlw==
   dependencies:
     "@openzeppelin/contracts" "2.5.0"
-    "@windingtree/org.id" "0.11.5"
+    "@windingtree/org.id" "1.1.1"
 
-"@windingtree/org.id@0.11.5":
-  version "0.11.5"
-  resolved "https://registry.yarnpkg.com/@windingtree/org.id/-/org.id-0.11.5.tgz#43b733a3456b7695b08a6aed3101dca45f7dadf0"
-  integrity sha512-mB6FrJaV6qvZFL2AMogQivsf5lovu5DvSQZ4V5ynm+qYsZsobgf6ez/XOoyTLCXFxGIdO7s9spV8SvLDIqyoXw==
-  dependencies:
-    "@openzeppelin/contracts" "2.5.0"
-
-"@windingtree/org.id@^1.1.1":
+"@windingtree/org.id@1.1.1", "@windingtree/org.id@^1.1.1":
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/@windingtree/org.id/-/org.id-1.1.1.tgz#44998f7d23c9071035bdeb598ff8ac517d397c94"
   integrity sha512-/qoaVaNo/2nbIPD46LLzvn9/Q6HKQTtY6T3RDWpNjmDg/MYr8nPflaPLboqzVuMDzd3d24Q7TGJ0sFL/KI2yvQ==
