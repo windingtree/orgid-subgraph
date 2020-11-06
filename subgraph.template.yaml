@@ -5,11 +5,11 @@ schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum/contract
-    name: OrgIdContract
+    name: OrgId
     network: {{network}}
     source:
       address: '{{orgIdAddress}}'
-      abi: OrgId
+      abi: OrgIdContract
       startBlock: {{orgIdStartBlock}}
     mapping:
       kind: ethereum/events
@@ -18,7 +18,7 @@ dataSources:
       entities:
         - Organization
       abis:
-        - name: OrgId
+        - name: OrgIdContract
           file: ./abis/OrgId.json
       eventHandlers:
         - event: DirectorshipAccepted(indexed bytes32,indexed address)
@@ -37,21 +37,23 @@ dataSources:
           handler: handleUnitCreated
       file: ./src/mappings/orgId.ts
   - kind: ethereum/contract
-    name: DirectoryIndex
+    name: Directory
     network: {{network}}
     source:
       address: '{{directoryIndexAddress}}'
-      abi: DirectoryIndex
+      abi: DirectoryIndexContract
       startBlock: {{directoryIndexStartBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
       language: wasm/assemblyscript
       entities:
-        - Segment
+        - Directory
       abis:
-        - name: DirectoryIndex
+        - name: DirectoryIndexContract
           file: ./abis/DirectoryIndex.json
+        - name: ArbitrableDirectoryContract
+          file: ./abis/ArbitrableDirectory.json
       eventHandlers:
         - event: SegmentAdded(indexed address,indexed uint256)
           handler: handleDirectoryAdded
@@ -59,20 +61,20 @@ dataSources:
           handler: handleDirectoryRemoved
       file: ./src/mappings/directoryIndex.ts
 templates:
-  - name: ArbitrableDirectory
+  - name: ArbitrableDirectoryTemplate
     kind: ethereum/contract
     network: {{network}}
     source:
-      abi: ArbitrableDirectory
+      abi: ArbitrableDirectoryContract
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.1
       language: wasm/assemblyscript
       file: ./src/mappings/arbitrableDirectory.ts
       entities:
-        - ArbitrableDirectory
+        - Directory
       abis:
-        - name: ArbitrableDirectory
+        - name: ArbitrableDirectoryContract
           file: ./abis/ArbitrableDirectory.json
       eventHandlers:
         - event: ChallengeContributed(indexed bytes32,uint256,address)

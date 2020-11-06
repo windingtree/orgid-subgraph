@@ -6,7 +6,7 @@ import {
   OrganizationCreated,
   OrganizationOwnershipTransferred,
   UnitCreated,
-} from '../../generated/OrgIdContract/OrgId'
+} from '../../generated/OrgId/OrgIdContract'
 import { Bytes, log } from "@graphprotocol/graph-ts"
 import { getOrganizationFromContract } from '../orgId'
 import { cidFromHash } from '../ipfs'

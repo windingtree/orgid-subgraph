@@ -10,9 +10,9 @@ import {
   OrganizationSubmitted,
   Ruling,
   SegmentChanged,
-} from '../../generated/templates/ArbitrableDirectory/ArbitrableDirectory'
+} from '../../generated/templates/ArbitrableDirectoryTemplate/ArbitrableDirectoryContract'
 
-import { ArbitrableDirectory as ArbitrableDirectoryContract} from '../../generated/templates/ArbitrableDirectory/ArbitrableDirectory'
+import { ArbitrableDirectoryContract} from '../../generated/Directory/ArbitrableDirectoryContract'
 import { Directory } from '../../generated/schema'
 
 export function handleDirectoryNameChanged(event: SegmentChanged): void {

@@ -9,8 +9,8 @@ import {
 } from "./constants"
 
 import {
-  OrgId as OrgIdContract,
-} from "../generated/OrgIdContract/Orgid"
+  OrgIdContract,
+} from "../generated/OrgId/OrgIdContract"
 
 import { Organization } from "../generated/schema"
 

@@ -1,9 +1,9 @@
 import {
   SegmentAdded,
   SegmentRemoved,
-} from '../../generated/DirectoryIndex/DirectoryIndex'
-import { ArbitrableDirectory as ArbitrableDirectoryTemplate} from '../../generated/templates'
-import { ArbitrableDirectory as ArbitrableDirectoryContract} from '../../generated/templates/ArbitrableDirectory/ArbitrableDirectory'
+} from '../../generated/Directory/DirectoryIndexContract'
+import { ArbitrableDirectoryTemplate } from '../../generated/templates'
+import { ArbitrableDirectoryContract } from '../../generated/templates/ArbitrableDirectoryTemplate/ArbitrableDirectoryContract'
 import { Directory } from '../../generated/schema'
 import { Address } from "@graphprotocol/graph-ts"
 
