@@ -146,25 +146,38 @@ type Organization @entity {
   createdAtBlockNumber: BigInt!
 }
 
+# Define an entity for the directories
 type Directory @entity {
   "ID is set to the directory contract address"
   id: ID!
-  "Name of the directory"
-  name: String!
-  "List of Organizations in this directory"
-  organizations: [Organization!]
-  "Indicates if the directory has been archived"
+
+  "Segment (ie: Name) of the directory"
+  segment: String!
+
+  "Indicates if the directory itself has been removed: it is not an official directory anymore"
   isRemoved: Boolean!
 
-  # Creation stats
-  "Timestamp of the directory addition in official index"
+  "List of Organizations registered in this directory"
+  registeredOrganizations: [Organization!]
+
+  "List of Organizations challenged: they are still in the directory but could be removed if they lose the dispute"
+  challengedOrganizations: [Organization!]
+
+  "List of Organizations removed from the directory: they are un-registered"
+  removedOrganizations: [Organization!]
+
+  "List of Organizations pending: they have requested to join the directory but pending acceptance"
+  pendingOrganizations: [Organization!]
+
+  "Timestamp of the directory addition in the official index"
   addedAtTimestamp: BigInt!
+
   "Block number when the directory was added in the official index"
   addedAtBlockNumber: BigInt!
 
-  # Removal stats
   "Timestamp of the directory removal from the official index"
   removedAtTimestamp: BigInt
+
   "Block number when the directory was removed from the official index"
   removedAtBlockNumber: BigInt
 }

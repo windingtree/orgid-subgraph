@@ -5,7 +5,7 @@ import {
 import { ArbitrableDirectoryTemplate } from '../../generated/templates'
 import { ArbitrableDirectoryContract } from '../../generated/templates/ArbitrableDirectoryTemplate/ArbitrableDirectoryContract'
 import { Directory } from '../../generated/schema'
-import { Address } from "@graphprotocol/graph-ts"
+import { Address, log } from "@graphprotocol/graph-ts"
 
 function safeGetDirectory(directoryAddress: Address): Directory {
   let directory = Directory.load(directoryAddress.toHexString())
@@ -26,11 +26,13 @@ export function handleDirectoryAdded(event: SegmentAdded): void {
     directory.isRemoved = false
     directory.addedAtTimestamp = event.block.timestamp
     directory.addedAtBlockNumber = event.block.number
-    directory.name = directoryContract.getSegment()
+    directory.segment = directoryContract.getSegment()
     directory.save()
 
     // Start indexing this directory contract using the data source template
     ArbitrableDirectoryTemplate.create(event.params.segment)
+  } else {
+    log.error("handleDirectoryAdded|Directory Not found|{}", [event.params.segment.toHexString()])
   }
 
 }
