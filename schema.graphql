@@ -160,12 +160,6 @@ type Directory @entity {
   "List of Organizations registered in this directory"
   registeredOrganizations: [Organization!]
 
-  "List of Organizations challenged: they are still in the directory but could be removed if they lose the dispute"
-  challengedOrganizations: [Organization!]
-
-  "List of Organizations removed from the directory: they are un-registered"
-  removedOrganizations: [Organization!]
-
   "List of Organizations pending: they have requested to join the directory but pending acceptance"
   pendingOrganizations: [Organization!]
 

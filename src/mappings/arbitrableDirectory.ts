@@ -1,3 +1,4 @@
+import { Address, Bytes, log, BigInt} from "@graphprotocol/graph-ts"
 import {
   ChallengeContributed,
   Dispute,
@@ -10,11 +11,11 @@ import {
   OrganizationSubmitted,
   Ruling,
   SegmentChanged,
+  ArbitrableDirectoryContract,
 } from '../../generated/templates/ArbitrableDirectoryTemplate/ArbitrableDirectoryContract'
-import { log } from "@graphprotocol/graph-ts"
-
 import { Directory } from '../../generated/schema'
 
+// Handle a change of name of the directory
 export function handleDirectoryNameChanged(event: SegmentChanged): void {
   let directory = Directory.load(event.address.toHexString())
   if(directory) {
@@ -25,64 +26,51 @@ export function handleDirectoryNameChanged(event: SegmentChanged): void {
   }
 }
 
+// Helper to udpdate the organizations lists
+function updateOrganizations(directoryAddress: Address, updateRegistered: boolean, updateRequested: boolean): void {
+  let directory = Directory.load(directoryAddress.toHexString())
+  if(directory) {
+    let directoryContact = ArbitrableDirectoryContract.bind(directoryAddress)
+    let organizations: Bytes[]
+
+    if(updateRegistered) {
+      organizations = directoryContact.getOrganizations(BigInt.fromI32(0), BigInt.fromI32(0))
+      directory.registeredOrganizations = organizations.map<string>((orgId: Bytes) => orgId.toHexString())
+    }
+
+    if(updateRequested) {
+      organizations = directoryContact.getRequestedOrganizations(BigInt.fromI32(0), BigInt.fromI32(0))
+      directory.pendingOrganizations = organizations.map<string>((orgId: Bytes) => orgId.toHexString())
+    }
+    
+    directory.save()
+  } else {
+    log.error("updateOrganizations|Directory Not found|{}", [directoryAddress.toHexString()])
+  }
+}
+
+// Handle the inclusion of a new organization in the directory
 export function handleOrganizationAdded(event: OrganizationAdded): void {
-  let directory = Directory.load(event.address.toHexString())
-  if(directory) {
-    directory.registeredOrganizations.push(event.params._organization.toHexString())
-    directory.save()
-  } else {
-    log.error("handleOrganizationAdded|Directory Not found|{}", [event.address.toHexString()])
-  }
+  updateOrganizations(event.address, true, false)
 }
 
-export function handleOrganizationChallenged(event: OrganizationChallenged): void {
-  let directory = Directory.load(event.address.toHexString())
-  if(directory) {
-    directory.challengedOrganizations.push(event.params._organization.toHexString())
-    directory.save()
-  } else {
-    log.error("handleOrganizationChallenged|Directory Not found|{}", [event.address.toHexString()])
-  }
-}
-
-export function handleOrganizationSubmitted(event: OrganizationSubmitted): void {
-  let directory = Directory.load(event.address.toHexString())
-  if(directory) {
-    directory.pendingOrganizations.push(event.params._organization.toHexString())
-    directory.save()
-  } else {
-    log.error("handleOrganizationSubmitted|Directory Not found|{}", [event.address.toHexString()])
-  }
-}
-
+// Handle the removal of an organization from the directory
 export function handleOrganizationRemoved(event: OrganizationRemoved): void {
-  let directory = Directory.load(event.address.toHexString())
-  if(directory) {
-    // Remove the organization from the list of registered organizations
-    let organizationIndex = directory.registeredOrganizations.indexOf(event.params._organization.toHexString())
-    directory.registeredOrganizations = directory.registeredOrganizations.splice(organizationIndex, 1)
-
-    // Add it to the list of removed organizations (for archive)
-    directory.removedOrganizations.push(event.params._organization.toHexString())
-    directory.save()
-  } else {
-    log.error("handleOrganizationRemoved|Directory Not found|{}", [event.address.toHexString()])
-  }
+  updateOrganizations(event.address, true, false)
 }
 
+// Handle the request of an organization to join the directory
+export function handleOrganizationSubmitted(event: OrganizationSubmitted): void {
+  updateOrganizations(event.address, false, true)
+}
+
+// Handle the withdrawl of the request of an organization to join the directory
 export function handleOrganizationRequestRemoved(event: OrganizationRequestRemoved): void {
-  let directory = Directory.load(event.address.toHexString())
-  if(directory) {
-    // Remove the organization from the list of pending organizations
-    let organizationIndex = directory.pendingOrganizations.indexOf(event.params._organization.toHexString())
-    directory.pendingOrganizations = directory.pendingOrganizations.splice(organizationIndex, 1)
-    directory.save()
-  } else {
-    log.error("handleOrganizationRequestRemoved|Directory Not found|{}", [event.address.toHexString()])
-  }
+  updateOrganizations(event.address, false, true)
 }
 
-
+/* TODO: Handle challenges and arbitration process */
+export function handleOrganizationChallenged(event: OrganizationChallenged): void {}
 
 export function handleRuling(event: Ruling): void {}
 
