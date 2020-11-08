@@ -31,19 +31,34 @@ function updateOrganizations(directoryAddress: Address, updateRegistered: boolea
   let directory = Directory.load(directoryAddress.toHexString())
   if(directory) {
     let directoryContact = ArbitrableDirectoryContract.bind(directoryAddress)
-    let organizations: Bytes[]
+    if(directoryContact) {
 
-    if(updateRegistered) {
-      organizations = directoryContact.getOrganizations(BigInt.fromI32(0), BigInt.fromI32(0))
-      directory.registeredOrganizations = organizations.map<string>((orgId: Bytes) => orgId.toHexString())
+      // If Registered Organizations need to be updated
+      if(updateRegistered) {
+        log.info("updateOrganizations|Retrieving registered organizations from Contract|{}", [directoryAddress.toHexString()])
+        let registeredOrganizations = directoryContact.getOrganizations(BigInt.fromI32(0), BigInt.fromI32(0))
+        if(registeredOrganizations) {
+          directory.registeredOrganizations = registeredOrganizations.map<string>((value: Bytes) => value.toHexString())
+        } else {
+          log.error("updateOrganizations|Could not get registered Organzizations|{}", [directoryAddress.toHexString()])
+        }
+      }
+  
+      // If Requested Organizations need to be updated
+      if(updateRequested) {
+        log.info("updateOrganizations|Retrieving requested organizations from Contract|{}", [directoryAddress.toHexString()])
+        let requestedOrganizations = directoryContact.getRequestedOrganizations(BigInt.fromI32(0), BigInt.fromI32(0))
+        if(requestedOrganizations) {
+          directory.pendingOrganizations = requestedOrganizations.map<string>((value: Bytes) => value.toHexString())
+        } else {
+          log.error("updateOrganizations|Could not get registered Organzizations|{}", [directoryAddress.toHexString()])
+        }
+      }
+      
+      directory.save()
+    } else {
+      log.error("updateOrganizations|Contract Not found|{}", [directoryAddress.toHexString()])
     }
-
-    if(updateRequested) {
-      organizations = directoryContact.getRequestedOrganizations(BigInt.fromI32(0), BigInt.fromI32(0))
-      directory.pendingOrganizations = organizations.map<string>((orgId: Bytes) => orgId.toHexString())
-    }
-    
-    directory.save()
   } else {
     log.error("updateOrganizations|Directory Not found|{}", [directoryAddress.toHexString()])
   }
@@ -51,7 +66,7 @@ function updateOrganizations(directoryAddress: Address, updateRegistered: boolea
 
 // Handle the inclusion of a new organization in the directory
 export function handleOrganizationAdded(event: OrganizationAdded): void {
-  updateOrganizations(event.address, true, false)
+  updateOrganizations(event.address, true, true)
 }
 
 // Handle the removal of an organization from the directory
