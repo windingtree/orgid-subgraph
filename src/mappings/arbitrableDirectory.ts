@@ -13,7 +13,7 @@ import {
   SegmentChanged,
   ArbitrableDirectoryContract,
 } from '../../generated/templates/ArbitrableDirectoryTemplate/ArbitrableDirectoryContract'
-import { Directory } from '../../generated/schema'
+import { Organization, Directory } from '../../generated/schema'
 
 // Handle a change of name of the directory
 export function handleDirectoryNameChanged(event: SegmentChanged): void {
@@ -68,26 +68,51 @@ function updateOrganizations(directoryAddress: Address, updateRegistered: boolea
     log.error("updateOrganizations|Directory Not found|{}", [directoryAddress.toHexString()])
   }
 }
-
-// Handle the inclusion of a new organization in the directory
-export function handleOrganizationAdded(event: OrganizationAdded): void {
-  updateOrganizations(event.address, true, true)
-}
-
-// Handle the removal of an organization from the directory
-export function handleOrganizationRemoved(event: OrganizationRemoved): void {
-  updateOrganizations(event.address, true, false)
-}
-
 // Handle the request of an organization to join the directory
 export function handleOrganizationSubmitted(event: OrganizationSubmitted): void {
-  updateOrganizations(event.address, false, true)
+  //updateOrganizations(event.address, false, true)
+  let directory = Directory.load(event.address.toHexString())
+  let directoryContract = ArbitrableDirectoryContract.bind(event.address)
+  let organization = Organization.load(event.params._organization.toHexString())
+  if(directory && directoryContract && organization) {
+    if(!directory.pendingOrganizations) {
+      directory.pendingOrganizations = []
+    }
+    directory.pendingOrganizations.push(organization.id)
+    directory.save()
+  } else {
+    log.error("handleOrganizationSubmitted|Directory or Organization Not found|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
+  }
 }
 
 // Handle the withdrawl of the request of an organization to join the directory
 export function handleOrganizationRequestRemoved(event: OrganizationRequestRemoved): void {
-  updateOrganizations(event.address, false, true)
+  //updateOrganizations(event.address, false, true)
 }
+
+// Handle the inclusion of a new organization in the directory
+export function handleOrganizationAdded(event: OrganizationAdded): void {
+  //updateOrganizations(event.address, true, true)
+  let directory = Directory.load(event.address.toHexString())
+  let directoryContract = ArbitrableDirectoryContract.bind(event.address)
+  let organization = Organization.load(event.params._organization.toHexString())
+  if(directory && directoryContract && organization) {
+    if(!directory.registeredOrganizations) {
+      directory.registeredOrganizations = []
+    }
+    directory.registeredOrganizations.push(organization.id)
+    directory.save()
+  } else {
+    log.error("handleOrganizationAdded|Directory or Organization Not found|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
+  }
+}
+
+// Handle the removal of an organization from the directory
+export function handleOrganizationRemoved(event: OrganizationRemoved): void {
+  //updateOrganizations(event.address, true, false)
+}
+
+
 
 /* TODO: Handle challenges and arbitration process */
 export function handleOrganizationChallenged(event: OrganizationChallenged): void {}
