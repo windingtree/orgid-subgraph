@@ -74,12 +74,13 @@ export function handleOrganizationSubmitted(event: OrganizationSubmitted): void 
   let directory = Directory.load(event.address.toHexString())
   let directoryContract = ArbitrableDirectoryContract.bind(event.address)
   let organization = Organization.load(event.params._organization.toHexString())
-  if(directory && directoryContract && organization) {
+  if((directory != null) && (directoryContract != null) && (organization != null)) {
     if(!directory.pendingOrganizations) {
       directory.pendingOrganizations = []
     }
     directory.pendingOrganizations.push(organization.id)
     directory.save()
+    log.error("handleOrganizationSubmitted|Directory updated|{}|{}", [directory.id, organization.id])
   } else {
     log.error("handleOrganizationSubmitted|Directory or Organization Not found|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
   }
@@ -96,12 +97,13 @@ export function handleOrganizationAdded(event: OrganizationAdded): void {
   let directory = Directory.load(event.address.toHexString())
   let directoryContract = ArbitrableDirectoryContract.bind(event.address)
   let organization = Organization.load(event.params._organization.toHexString())
-  if(directory && directoryContract && organization) {
+  if((directory != null) && (directoryContract != null) && (organization != null)) {
     if(!directory.registeredOrganizations) {
       directory.registeredOrganizations = []
     }
     directory.registeredOrganizations.push(organization.id)
     directory.save()
+    log.error("handleOrganizationAdded|Directory updated|{}|{}", [directory.id, organization.id])
   } else {
     log.error("handleOrganizationAdded|Directory or Organization Not found|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
   }
