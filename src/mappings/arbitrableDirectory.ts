@@ -32,26 +32,31 @@ function updateOrganizations(directoryAddress: Address, updateRegistered: boolea
   if(directory) {
     let directoryContact = ArbitrableDirectoryContract.bind(directoryAddress)
     if(directoryContact) {
+      let zero: i32 = 0
 
       // If Registered Organizations need to be updated
       if(updateRegistered) {
         log.info("updateOrganizations|Retrieving registered organizations from Contract|{}", [directoryAddress.toHexString()])
-        let registeredOrganizations = directoryContact.getOrganizations(BigInt.fromI32(0), BigInt.fromI32(0))
-        if(registeredOrganizations) {
-          directory.registeredOrganizations = registeredOrganizations.map<string>((value: Bytes) => value.toHexString())
+        let getOrganizationCallResult = directoryContact.try_getOrganizations(BigInt.fromI32(zero), BigInt.fromI32(zero))
+        if(!getOrganizationCallResult.reverted) {
+          let getOrganizationValue = getOrganizationCallResult.value as Array<Bytes>
+          log.info("updateOrganizations|getOrganizations() found {}|{}", [getOrganizationValue.length.toString(), directoryAddress.toHexString()])
+          directory.registeredOrganizations = getOrganizationValue.map<string>((value: Bytes) => value.toHexString())
         } else {
-          log.error("updateOrganizations|Could not get registered Organzizations|{}", [directoryAddress.toHexString()])
+          log.error("updateOrganizations|getOrganizations() call reverted|{}", [directoryAddress.toHexString()])
         }
       }
   
       // If Requested Organizations need to be updated
       if(updateRequested) {
         log.info("updateOrganizations|Retrieving requested organizations from Contract|{}", [directoryAddress.toHexString()])
-        let requestedOrganizations = directoryContact.getRequestedOrganizations(BigInt.fromI32(0), BigInt.fromI32(0))
-        if(requestedOrganizations) {
-          directory.pendingOrganizations = requestedOrganizations.map<string>((value: Bytes) => value.toHexString())
+        let getRequestedOrganizationsCallResult = directoryContact.try_getRequestedOrganizations(BigInt.fromI32(zero), BigInt.fromI32(zero))
+        if(!getRequestedOrganizationsCallResult.reverted) {
+          let getRequestedOrganizationsValue = getRequestedOrganizationsCallResult.value as Array<Bytes>
+          log.info("updateOrganizations|getRequestedOrganizations() found {}|{}", [getRequestedOrganizationsValue.length.toString(), directoryAddress.toHexString()])
+          directory.pendingOrganizations = getRequestedOrganizationsValue.map<string>((value: Bytes) => value.toHexString())
         } else {
-          log.error("updateOrganizations|Could not get registered Organzizations|{}", [directoryAddress.toHexString()])
+          log.error("updateOrganizations|getRequestedOrganizations() call reverted|{}", [directoryAddress.toHexString()])
         }
       }
       

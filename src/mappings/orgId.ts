@@ -23,7 +23,6 @@ export function handleOrganizationCreated(event: OrganizationCreated): void {
     organization.createdAtBlockNumber = event.block.number
     organization.organizationType = 'LegalEntity'
     
-
     // Add JSON IPFS CID
     if(organization.orgJsonHash) {
       organization.ipfsCid = cidFromHash(organization.orgJsonHash as Bytes)

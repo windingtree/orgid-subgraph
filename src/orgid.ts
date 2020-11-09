@@ -24,6 +24,7 @@ export function getOrganizationFromContract(id: Bytes): Organization | null {
   let organization = Organization.load(id.toHex())
   if(organization == null) {
     organization = new Organization(id.toHex())
+    organization.did = `did:orgid:${id.toHex()}`
   }
 
   // Retrieve additional details from smartcontract

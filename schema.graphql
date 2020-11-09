@@ -2,8 +2,10 @@
 type Point @entity {
   "ID is set to the ORGiD value"
   id: ID!
+
   "GPS Latitude"
   latitude: BigDecimal
+
   "GPS Longitude"
   longitude: BigDecimal
 }
@@ -12,18 +14,25 @@ type Point @entity {
 type OrganizationAddress @entity {
   "ID is set to the ORGiD value"
   id: ID!
+
   "2-letters code of the country as per ISO standard"
   country: String
+
   "Country subdivision such as state or region"
   subdivision: String
+
   "Locality or City name"
   locality: String
+
   "Postal or Zip Code"
   postalCode: String
+
   "Street Address"
   streetAddress: String
+
   "Name or number of the premise"
   premise: String
+
   "GPS Coordinates of the location"
   gps: Point
 }
@@ -38,10 +47,19 @@ enum PublicKeyType {
 
 # A public Key
 type PublicKey @entity {
+  "ID of the public key"
   id: ID!
+
+  "Type or algorithm of the Public Key"
   type: PublicKeyType!
+
+  "PEM part of the Public Key"
   publicKeyPem: String!
+
+  "DID controlling the Public Key"
   controller: String
+
+  "Note from the Public Key owner"
   note: String
 }
 
@@ -49,14 +67,19 @@ type PublicKey @entity {
 type Service @entity {
   "ID of the service as per W3C DID"
   id: ID!
+
   "Service Endpoint or Base URL for the service requests"
   serviceEndpoint: String!
+
   "Type of service"
   type: String
+  
   "Version of service"
   version: String
+
   "Description of the service"
   description: String
+
   "URL for documentation of the API"
   docs: String
 }
@@ -65,14 +88,19 @@ type Service @entity {
 type LegalEntity @entity {
   "ID is set to the W3C DID value"
   id: ID!
+  
   "Legal name of the entity"
   legalName: String
+
   "Legal type of the entity"
   legalType: String
+
   "Legal identifier in the national business registry of the entity"
   legalIdentifier: String
+
   "Legal address of the entity"
   registeredAddress: OrganizationAddress
+
   "Associated Organization entity"
   organization: Organization
 }
@@ -81,16 +109,22 @@ type LegalEntity @entity {
 type OrganizationalUnit @entity {
   "ID is set to the W3C DID value"
   id: ID!
+
   "Name of the entity"
   name: String
+
   "Description of the entity"
   description: String
+
   "Longer description of the entity"
   longDescription: String
-  "Types of this entity (informative)"
+
+  "Types of this entity (informative), consider using Directories for verified values"
   type: [String!]
+
   "Address of the entity"
   address: OrganizationAddress
+
   "Associated Organization entity"
   organization: Organization
 }
@@ -106,42 +140,53 @@ type Organization @entity {
   # ORGiD value
   "ID is set to the ORGiD value"
   id: ID!
-  "did is set to the W3C DID value"
+
+  "did is set to the W3C DID value. Where possible, use the ID instead for performance."
   did: String
 
   # Mirrored from Smart-contract
   "Ethereum address of the owner of the organization"
   owner: Bytes! # address
+
   "Active status of the entity"
   isActive: Boolean
+
   "Ethereum address of the director of the organization"
   director: Bytes # address
+
   "keccak-256 hash of the associated JSON file"
   orgJsonHash: Bytes
+
   "IPFS CID of the JSON file"
   ipfsCid: String
 
   # Mapping with other Organizations
   "Sub-units of this organization"
   units: [Organization!]
+
   "Parent organization"
   parent: Organization
 
   # From offchain data
   "Type of organization (LegalEntity or OrganizationalUnit)"
   organizationType: OrganizationType!
+
   "Associated Legal Entity object for Legal Entities (null otherwise)"
   legalEntity: LegalEntity
+
   "Associated OrganizationalUnit object for Organizational Units  (null otherwise)"
   organizationalUnit: OrganizationalUnit
+
   "Array of Public Keys associated with the Organization"
   publicKey: [PublicKey!]
+
   "Array of Services associated with the Organization"
   service: [Service!]
 
   # Creation stats
   "Timestamp of the Organization Creation"
   createdAtTimestamp: BigInt!
+
   "Block number when the organization was created"
   createdAtBlockNumber: BigInt!
 }
