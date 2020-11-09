@@ -40,7 +40,7 @@ function updateOrganizations(directoryAddress: Address, updateRegistered: boolea
         let getOrganizationCallResult = directoryContact.try_getOrganizations(BigInt.fromI32(zero), BigInt.fromI32(zero))
         if(!getOrganizationCallResult.reverted) {
           let getOrganizationValue = getOrganizationCallResult.value as Array<Bytes>
-          log.info("updateOrganizations|getOrganizations() found {}|{}", [getOrganizationValue.length.toString(), directoryAddress.toHexString()])
+          log.info("updateOrganizations|getOrganizations() found {}|{}", [`${getOrganizationValue.length}`, directoryAddress.toHexString()])
           directory.registeredOrganizations = getOrganizationValue.map<string>((value: Bytes) => value.toHexString())
         } else {
           log.error("updateOrganizations|getOrganizations() call reverted|{}", [directoryAddress.toHexString()])
@@ -53,7 +53,7 @@ function updateOrganizations(directoryAddress: Address, updateRegistered: boolea
         let getRequestedOrganizationsCallResult = directoryContact.try_getRequestedOrganizations(BigInt.fromI32(zero), BigInt.fromI32(zero))
         if(!getRequestedOrganizationsCallResult.reverted) {
           let getRequestedOrganizationsValue = getRequestedOrganizationsCallResult.value as Array<Bytes>
-          log.info("updateOrganizations|getRequestedOrganizations() found {}|{}", [getRequestedOrganizationsValue.length.toString(), directoryAddress.toHexString()])
+          log.info("updateOrganizations|getRequestedOrganizations() found {}|{}", [`${getRequestedOrganizationsValue.length}`, directoryAddress.toHexString()])
           directory.pendingOrganizations = getRequestedOrganizationsValue.map<string>((value: Bytes) => value.toHexString())
         } else {
           log.error("updateOrganizations|getRequestedOrganizations() call reverted|{}", [directoryAddress.toHexString()])
