@@ -95,6 +95,8 @@ function toAddress(did: string, jsonObject: TypedMap<string, JSONValue> | null):
       let longitude = BigDecimal.fromString(parts[1])
       if(latitude && longitude) {
         let point = new Point(did)
+        point.latitude = latitude
+        point.longitude = longitude
         point.save()
         outputAddress.gps = point.id
       }
