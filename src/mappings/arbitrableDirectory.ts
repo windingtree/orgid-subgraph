@@ -26,61 +26,26 @@ export function handleDirectoryNameChanged(event: SegmentChanged): void {
   }
 }
 
-// Helper to udpdate the organizations lists
-function updateOrganizations(directoryAddress: Address, updateRegistered: boolean, updateRequested: boolean): void {
-  let directory = Directory.load(directoryAddress.toHexString())
-  if(directory) {
-    let directoryContact = ArbitrableDirectoryContract.bind(directoryAddress)
-    if(directoryContact) {
-      let zero: i32 = 0
-
-      // If Registered Organizations need to be updated
-      if(updateRegistered) {
-        log.info("updateOrganizations|Retrieving registered organizations from Contract|{}", [directoryAddress.toHexString()])
-        let getOrganizationCallResult = directoryContact.try_getOrganizations(BigInt.fromI32(zero), BigInt.fromI32(zero))
-        if(!getOrganizationCallResult.reverted) {
-          let getOrganizationValue = getOrganizationCallResult.value as Array<Bytes>
-          log.info("updateOrganizations|getOrganizations() found {}|{}", [`${getOrganizationValue.length}`, directoryAddress.toHexString()])
-          directory.registeredOrganizations = getOrganizationValue.map<string>((value: Bytes) => value.toHexString())
-        } else {
-          log.error("updateOrganizations|getOrganizations() call reverted|{}", [directoryAddress.toHexString()])
-        }
-      }
-  
-      // If Requested Organizations need to be updated
-      if(updateRequested) {
-        log.info("updateOrganizations|Retrieving requested organizations from Contract|{}", [directoryAddress.toHexString()])
-        let getRequestedOrganizationsCallResult = directoryContact.try_getRequestedOrganizations(BigInt.fromI32(zero), BigInt.fromI32(zero))
-        if(!getRequestedOrganizationsCallResult.reverted) {
-          let getRequestedOrganizationsValue = getRequestedOrganizationsCallResult.value as Array<Bytes>
-          log.info("updateOrganizations|getRequestedOrganizations() found {}|{}", [`${getRequestedOrganizationsValue.length}`, directoryAddress.toHexString()])
-          directory.pendingOrganizations = getRequestedOrganizationsValue.map<string>((value: Bytes) => value.toHexString())
-        } else {
-          log.error("updateOrganizations|getRequestedOrganizations() call reverted|{}", [directoryAddress.toHexString()])
-        }
-      }
-      
-      directory.save()
-    } else {
-      log.error("updateOrganizations|Contract Not found|{}", [directoryAddress.toHexString()])
-    }
-  } else {
-    log.error("updateOrganizations|Directory Not found|{}", [directoryAddress.toHexString()])
-  }
-}
 // Handle the request of an organization to join the directory
 export function handleOrganizationSubmitted(event: OrganizationSubmitted): void {
-  //updateOrganizations(event.address, false, true)
+  // Retrieve objects
   let directory = Directory.load(event.address.toHexString())
   let directoryContract = ArbitrableDirectoryContract.bind(event.address)
   let organization = Organization.load(event.params._organization.toHexString())
+
+  // Check if all objects are present
   if((directory != null) && (directoryContract != null) && (organization != null)) {
-    if(!directory.pendingOrganizations) {
+    if(directory.pendingOrganizations == null) {
       directory.pendingOrganizations = []
     }
-    directory.pendingOrganizations.push(organization.id)
+
+    // Need to use a local variable otherwise directory is not updated
+    let pendingOrganizations = directory.pendingOrganizations
+    pendingOrganizations.push(organization.id)
+    directory.pendingOrganizations = pendingOrganizations
+
     directory.save()
-    log.error("handleOrganizationSubmitted|Directory updated|{}|{}", [directory.id, organization.id])
+    log.info("handleOrganizationSubmitted|Directory updated|{}|{}", [directory.id, organization.id])
   } else {
     log.error("handleOrganizationSubmitted|Directory or Organization Not found|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
   }
@@ -88,7 +53,33 @@ export function handleOrganizationSubmitted(event: OrganizationSubmitted): void 
 
 // Handle the withdrawl of the request of an organization to join the directory
 export function handleOrganizationRequestRemoved(event: OrganizationRequestRemoved): void {
-  //updateOrganizations(event.address, false, true)
+  // Retrieve objects
+  let directory = Directory.load(event.address.toHexString())
+  let directoryContract = ArbitrableDirectoryContract.bind(event.address)
+  let organization = Organization.load(event.params._organization.toHexString())
+
+  // Check if all objects are present
+  if((directory != null) && (directoryContract != null) && (organization != null)) {
+    if((directory.pendingOrganizations == null) || (directory.pendingOrganizations.length == 0)){
+      log.error("handleOrganizationRequestRemoved|Directory Empty|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
+    }
+
+    else {
+      // Need to use a local variable otherwise directory is not updated
+      let pendingOrganizations = directory.pendingOrganizations
+      let organizationIndex = pendingOrganizations.indexOf(organization.id)
+      if(organizationIndex == -1) {
+        log.error("handleOrganizationRequestRemoved|Organization not part of Directory|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
+      } else {
+        pendingOrganizations.splice(organizationIndex, 1)
+        directory.pendingOrganizations = pendingOrganizations
+        directory.save()
+        log.info("handleOrganizationRequestRemoved|Directory updated|{}|{}", [directory.id, organization.id])
+      }
+    }
+  } else {
+    log.error("handleOrganizationRequestRemoved|Directory or Organization Not found|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
+  }
 }
 
 // Handle the inclusion of a new organization in the directory
@@ -98,10 +89,14 @@ export function handleOrganizationAdded(event: OrganizationAdded): void {
   let directoryContract = ArbitrableDirectoryContract.bind(event.address)
   let organization = Organization.load(event.params._organization.toHexString())
   if((directory != null) && (directoryContract != null) && (organization != null)) {
-    if(!directory.registeredOrganizations) {
+    if(directory.registeredOrganizations == null) {
       directory.registeredOrganizations = []
     }
-    directory.registeredOrganizations.push(organization.id)
+    // Need to use a local variable otherwise directory is not updated
+    let registeredOrganizations = directory.registeredOrganizations
+    registeredOrganizations.push(organization.id)
+    directory.registeredOrganizations = registeredOrganizations
+
     directory.save()
     log.error("handleOrganizationAdded|Directory updated|{}|{}", [directory.id, organization.id])
   } else {
@@ -111,7 +106,34 @@ export function handleOrganizationAdded(event: OrganizationAdded): void {
 
 // Handle the removal of an organization from the directory
 export function handleOrganizationRemoved(event: OrganizationRemoved): void {
-  //updateOrganizations(event.address, true, false)
+  // Retrieve objects
+  let directory = Directory.load(event.address.toHexString())
+  let directoryContract = ArbitrableDirectoryContract.bind(event.address)
+  let organization = Organization.load(event.params._organization.toHexString())
+
+  // Check if all objects are present
+  if((directory != null) && (directoryContract != null) && (organization != null)) {
+    if((directory.registeredOrganizations == null) || (directory.registeredOrganizations.length == 0)) {
+      log.error("handleOrganizationRequestRemoved|Directory empty|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
+    }
+
+    else {
+      // Need to use a local variable otherwise directory is not updated
+      let registeredOrganizations = directory.registeredOrganizations
+      let organizationIndex = registeredOrganizations.indexOf(organization.id)
+      if(organizationIndex == -1) {
+        log.error("handleOrganizationRequestRemoved|Organization not in Directory|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
+
+      } else {
+        registeredOrganizations.splice(organizationIndex, 1)
+        directory.pendingOrganizations = registeredOrganizations
+        directory.save()
+        log.info("handleOrganizationRequestRemoved|Directory updated|{}|{}", [directory.id, organization.id])  
+      }
+    }
+  } else {
+    log.error("handleOrganizationRequestRemoved|Directory or Organization Not found|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
+  }
 }
 
 
