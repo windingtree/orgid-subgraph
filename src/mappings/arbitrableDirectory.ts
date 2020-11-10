@@ -47,6 +47,8 @@ export function handleOrganizationSubmitted(event: OrganizationSubmitted): void 
     let mappingEntityId = directory.id.concat('-').concat(organization.id)
     let mappingEntity = RequestedDirectoryOrganization.load(mappingEntityId)
     if(!mappingEntity) {
+      mappingEntity = new RequestedDirectoryOrganization(mappingEntityId)
+
       // Add properties
       mappingEntity.directory = directory.id
       mappingEntity.organization = organization.id
@@ -107,10 +109,11 @@ export function handleOrganizationAdded(event: OrganizationAdded): void {
     // Create the ID
     let mappingEntityId = directory.id.concat('-').concat(organization.id)
     let mappingEntity = RegisteredDirectoryOrganization.load(mappingEntityId)
-    
 
     // Verify that the mapping does not already exist
     if(!mappingEntity) {
+      mappingEntity = new RegisteredDirectoryOrganization(mappingEntityId)
+
       // Create the mapping
       mappingEntity.directory = directory.id
       mappingEntity.organization = organization.id
