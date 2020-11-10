@@ -1,4 +1,4 @@
-# GPS Coordinates
+"GPS Coordinates of an organization"
 type Point @entity {
   "ID is set to the ORGiD value"
   id: ID!
@@ -10,7 +10,7 @@ type Point @entity {
   longitude: BigDecimal
 }
 
-# An address
+"Physical Address of an organization"
 type OrganizationAddress @entity {
   "ID is set to the ORGiD value"
   id: ID!
@@ -45,7 +45,7 @@ enum PublicKeyType {
   ETH
 }
 
-# A public Key
+"A Public Key to authenticate with other participants"
 type PublicKey @entity {
   "ID of the public key as per W3C DID"
   id: ID!
@@ -69,7 +69,7 @@ type PublicKey @entity {
   note: String
 }
 
-# An API Service
+"An API Service to expose to other participants to book content"
 type Service @entity {
   "ID is set to orgId-DID"
   id: ID!
@@ -96,7 +96,7 @@ type Service @entity {
   docs: String
 }
 
-# Define the Legal Entity type
+"Define the Legal Entity type"
 type LegalEntity @entity {
   "ID is set to the W3C DID value"
   id: ID!
@@ -117,7 +117,7 @@ type LegalEntity @entity {
   organization: Organization
 }
 
-# Define the Organizational Unit type
+"Define the Organizational Unit type"
 type OrganizationalUnit @entity {
   "ID is set to the W3C DID value"
   id: ID!
@@ -147,7 +147,7 @@ enum OrganizationType {
   OrganizationalUnit
 }
 
-# Define an Organization
+"Defines an Organization participating in the marketplace"
 type Organization @entity {
   # ORGiD value
   "ID is set to ORGiD value"
@@ -209,7 +209,7 @@ type Organization @entity {
   createdAtBlockNumber: BigInt!
 }
 
-# Define an entity for the directories
+"Defines a Directory where organizations are verified"
 type Directory @entity {
   "ID is set to the directory contract address"
   id: ID!
@@ -239,7 +239,7 @@ type Directory @entity {
   removedAtBlockNumber: BigInt
 }
 
-# Define the many-to-many mapping Organization<>Directory
+"Defines a mapping between Directories and registered Organizations contained within"
 type RegisteredDirectoryOrganization @entity {
   "Identifier of the organization-directory mapping"
   id: ID!   # Set to `${directory.id}-${organization.id}`
@@ -249,9 +249,18 @@ type RegisteredDirectoryOrganization @entity {
 
   "Directory party of the mapping"
   directory: Directory!
+
+  "Segment (ie: Name) of the directory"
+  segment: String!
+
+  "GPS Latitude of the associated organization"
+  latitude: BigDecimal
+
+  "GPS Longitude of the associated organization"
+  longitude: BigDecimal
 }
 
-# Define the many-to-many mapping Organization<>Directory
+"Defines a mapping between Directories and Organizations that requested to be part of it"
 type RequestedDirectoryOrganization @entity {
   "Identifier of the organization-directory mapping"
   id: ID!   # Set to `${directory.id}-${organization.id}`
@@ -259,6 +268,15 @@ type RequestedDirectoryOrganization @entity {
   "Organization party of the mapping"
   organization: Organization!
 
+  "Segment (ie: Name) of the directory"
+  segment: String!
+
   "Directory party of the mapping"
   directory: Directory!
+
+  "GPS Latitude of the associated organization"
+  latitude: BigDecimal
+
+  "GPS Longitude of the associated organization"
+  longitude: BigDecimal
 }

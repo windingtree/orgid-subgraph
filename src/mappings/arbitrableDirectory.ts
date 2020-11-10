@@ -16,6 +16,7 @@ import {
 import {
   Organization,
   Directory,
+  Point,
   RegisteredDirectoryOrganization,
   RequestedDirectoryOrganization,
 } from '../../generated/schema'
@@ -37,6 +38,7 @@ export function handleOrganizationSubmitted(event: OrganizationSubmitted): void 
   let directory = Directory.load(event.address.toHexString())
   let directoryContract = ArbitrableDirectoryContract.bind(event.address)
   let organization = Organization.load(event.params._organization.toHexString())
+  let locationPoint = Point.load(event.params._organization.toHexString())
 
   // Check if all objects are present
   if((directory != null) && (directoryContract != null) && (organization != null)) {
@@ -45,8 +47,16 @@ export function handleOrganizationSubmitted(event: OrganizationSubmitted): void 
     let mappingEntityId = directory.id.concat('-').concat(organization.id)
     let mappingEntity = RequestedDirectoryOrganization.load(mappingEntityId)
     if(!mappingEntity) {
+      // Add properties
       mappingEntity.directory = directory.id
       mappingEntity.organization = organization.id
+      mappingEntity.segment = directory.segment
+
+      // Add location
+      if(locationPoint != null) {
+        mappingEntity.latitude = locationPoint.latitude
+        mappingEntity.longitude = locationPoint.longitude
+      }
       mappingEntity.save()
       log.info("handleOrganizationSubmitted|Directory updated|{}|{}", [directory.id, organization.id])
     } else {
@@ -89,6 +99,7 @@ export function handleOrganizationAdded(event: OrganizationAdded): void {
   let directory = Directory.load(event.address.toHexString())
   let directoryContract = ArbitrableDirectoryContract.bind(event.address)
   let organization = Organization.load(event.params._organization.toHexString())
+  let locationPoint = Point.load(event.params._organization.toHexString())
 
   // Check if all objects are retrieved
   if((directory != null) && (directoryContract != null) && (organization != null)) {
@@ -96,12 +107,21 @@ export function handleOrganizationAdded(event: OrganizationAdded): void {
     // Create the ID
     let mappingEntityId = directory.id.concat('-').concat(organization.id)
     let mappingEntity = RegisteredDirectoryOrganization.load(mappingEntityId)
+    
 
     // Verify that the mapping does not already exist
     if(!mappingEntity) {
       // Create the mapping
       mappingEntity.directory = directory.id
       mappingEntity.organization = organization.id
+      mappingEntity.segment = directory.segment
+
+      // Add location
+      if(locationPoint != null) {
+        mappingEntity.latitude = locationPoint.latitude
+        mappingEntity.longitude = locationPoint.longitude
+      }
+
       mappingEntity.save()
       log.info("handleOrganizationAdded|Directory updated|{}|{}", [directory.id, organization.id])
     } else {
