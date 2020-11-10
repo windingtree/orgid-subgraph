@@ -66,12 +66,5 @@ export function getOrganizationFromContract(id: Bytes): Organization | null {
     organization.parent = parentOrgId.toHexString()
   }
 
-  // Map units
-  let getUnitsCallResult = orgidContract.try_getUnits(id, true)
-  if(!getUnitsCallResult.reverted) {
-    let rawUnits = <Array<Bytes>>getUnitsCallResult.value
-    organization.units = rawUnits.map<string>((value: Bytes, index: i32, array: Array<Bytes>) => value.toHexString())
-  }
-
   return organization
 }

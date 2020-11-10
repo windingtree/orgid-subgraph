@@ -1,4 +1,4 @@
-import { Address, Bytes, log, BigInt} from "@graphprotocol/graph-ts"
+import { log, store } from "@graphprotocol/graph-ts"
 import {
   ChallengeContributed,
   Dispute,
@@ -13,7 +13,12 @@ import {
   SegmentChanged,
   ArbitrableDirectoryContract,
 } from '../../generated/templates/ArbitrableDirectoryTemplate/ArbitrableDirectoryContract'
-import { Organization, Directory } from '../../generated/schema'
+import {
+  Organization,
+  Directory,
+  RegisteredDirectoryOrganization,
+  RequestedDirectoryOrganization,
+} from '../../generated/schema'
 
 // Handle a change of name of the directory
 export function handleDirectoryNameChanged(event: SegmentChanged): void {
@@ -35,17 +40,19 @@ export function handleOrganizationSubmitted(event: OrganizationSubmitted): void 
 
   // Check if all objects are present
   if((directory != null) && (directoryContract != null) && (organization != null)) {
-    if(directory.pendingOrganizations == null) {
-      directory.pendingOrganizations = []
+
+    // Create the mapping entity that will derive fields
+    let mappingEntityId = directory.id.concat('-').concat(organization.id)
+    let mappingEntity = RequestedDirectoryOrganization.load(mappingEntityId)
+    if(!mappingEntity) {
+      mappingEntity.directory = directory.id
+      mappingEntity.organization = organization.id
+      mappingEntity.save()
+      log.info("handleOrganizationSubmitted|Directory updated|{}|{}", [directory.id, organization.id])
+    } else {
+      log.error("handleOrganizationSubmitted|Organization is already part of Directory|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
     }
-
-    // Need to use a local variable otherwise directory is not updated
-    let pendingOrganizations = directory.pendingOrganizations
-    pendingOrganizations.push(organization.id)
-    directory.pendingOrganizations = pendingOrganizations
-
-    directory.save()
-    log.info("handleOrganizationSubmitted|Directory updated|{}|{}", [directory.id, organization.id])
+    
   } else {
     log.error("handleOrganizationSubmitted|Directory or Organization Not found|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
   }
@@ -60,23 +67,17 @@ export function handleOrganizationRequestRemoved(event: OrganizationRequestRemov
 
   // Check if all objects are present
   if((directory != null) && (directoryContract != null) && (organization != null)) {
-    if((directory.pendingOrganizations == null) || (directory.pendingOrganizations.length == 0)){
-      log.error("handleOrganizationRequestRemoved|Directory Empty|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
+    // Retrieve the mapping
+    let mappingEntityId = directory.id.concat('-').concat(organization.id)
+    let mappingEntity = RequestedDirectoryOrganization.load(mappingEntityId)
+    if(!mappingEntity) {
+      log.error("handleOrganizationRequestRemoved|Organization is not part of Directory|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
+    } else {
+      // Remove the mapping entity
+      store.remove('RequestedDirectoryOrganization', mappingEntityId)
+      log.info("handleOrganizationRequestRemoved|Organization-Directory mapping removed|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
     }
 
-    else {
-      // Need to use a local variable otherwise directory is not updated
-      let pendingOrganizations = directory.pendingOrganizations
-      let organizationIndex = pendingOrganizations.indexOf(organization.id)
-      if(organizationIndex == -1) {
-        log.error("handleOrganizationRequestRemoved|Organization not part of Directory|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
-      } else {
-        pendingOrganizations.splice(organizationIndex, 1)
-        directory.pendingOrganizations = pendingOrganizations
-        directory.save()
-        log.info("handleOrganizationRequestRemoved|Directory updated|{}|{}", [directory.id, organization.id])
-      }
-    }
   } else {
     log.error("handleOrganizationRequestRemoved|Directory or Organization Not found|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
   }
@@ -84,21 +85,29 @@ export function handleOrganizationRequestRemoved(event: OrganizationRequestRemov
 
 // Handle the inclusion of a new organization in the directory
 export function handleOrganizationAdded(event: OrganizationAdded): void {
-  //updateOrganizations(event.address, true, true)
+  // Retrieve objects
   let directory = Directory.load(event.address.toHexString())
   let directoryContract = ArbitrableDirectoryContract.bind(event.address)
   let organization = Organization.load(event.params._organization.toHexString())
-  if((directory != null) && (directoryContract != null) && (organization != null)) {
-    if(directory.registeredOrganizations == null) {
-      directory.registeredOrganizations = []
-    }
-    // Need to use a local variable otherwise directory is not updated
-    let registeredOrganizations = directory.registeredOrganizations
-    registeredOrganizations.push(organization.id)
-    directory.registeredOrganizations = registeredOrganizations
 
-    directory.save()
-    log.error("handleOrganizationAdded|Directory updated|{}|{}", [directory.id, organization.id])
+  // Check if all objects are retrieved
+  if((directory != null) && (directoryContract != null) && (organization != null)) {
+
+    // Create the ID
+    let mappingEntityId = directory.id.concat('-').concat(organization.id)
+    let mappingEntity = RegisteredDirectoryOrganization.load(mappingEntityId)
+
+    // Verify that the mapping does not already exist
+    if(!mappingEntity) {
+      // Create the mapping
+      mappingEntity.directory = directory.id
+      mappingEntity.organization = organization.id
+      mappingEntity.save()
+      log.info("handleOrganizationAdded|Directory updated|{}|{}", [directory.id, organization.id])
+    } else {
+      log.error("handleOrganizationAdded|Organization is already part of Directory|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
+    }
+
   } else {
     log.error("handleOrganizationAdded|Directory or Organization Not found|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
   }
@@ -113,26 +122,20 @@ export function handleOrganizationRemoved(event: OrganizationRemoved): void {
 
   // Check if all objects are present
   if((directory != null) && (directoryContract != null) && (organization != null)) {
-    if((directory.registeredOrganizations == null) || (directory.registeredOrganizations.length == 0)) {
-      log.error("handleOrganizationRequestRemoved|Directory empty|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
+    // Create the mapping ID
+    let mappingEntityId = directory.id.concat('-').concat(organization.id)
+    let mappingEntity = RegisteredDirectoryOrganization.load(mappingEntityId)
+
+    // Check if mapping exists and remove it
+    if(!mappingEntity) {
+      log.error("handleOrganizationRemoved|Organization is not part of Directory|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
+    } else {
+      store.remove('RegisteredDirectoryOrganization', mappingEntityId)
+      log.info("handleOrganizationRemoved|Organization-Directory mapping removed|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
     }
 
-    else {
-      // Need to use a local variable otherwise directory is not updated
-      let registeredOrganizations = directory.registeredOrganizations
-      let organizationIndex = registeredOrganizations.indexOf(organization.id)
-      if(organizationIndex == -1) {
-        log.error("handleOrganizationRequestRemoved|Organization not in Directory|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
-
-      } else {
-        registeredOrganizations.splice(organizationIndex, 1)
-        directory.pendingOrganizations = registeredOrganizations
-        directory.save()
-        log.info("handleOrganizationRequestRemoved|Directory updated|{}|{}", [directory.id, organization.id])  
-      }
-    }
   } else {
-    log.error("handleOrganizationRequestRemoved|Directory or Organization Not found|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
+    log.error("handleOrganizationRemoved|Directory or Organization Not found|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
   }
 }
 

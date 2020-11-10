@@ -34,14 +34,6 @@ export function handleOrganizationCreated(event: OrganizationCreated): void {
           organization.legalEntity = orgJson.legalEntity.id
         }
 
-        // Add other attributes
-        
-        if(orgJson.publicKey) {
-          organization.publicKey = orgJson.publicKey.map<string>((value: PublicKey) => value.id)
-        }
-        if(orgJson.service) {
-          organization.service = orgJson.service.map<string>((value: Service) => value.id)
-        }
       }
     }
 
@@ -71,14 +63,6 @@ export function handleUnitCreated(event: UnitCreated): void {
           unit.organizationalUnit = orgJson.organizationalUnit.id
         }
 
-        // Add other attributes
-        unit.organizationType = orgJson.organizationalType
-        if(orgJson.publicKey) {
-          unit.publicKey = orgJson.publicKey.map<string>((value: PublicKey) => value.id)
-        }
-        if(orgJson.service) {
-          unit.service = orgJson.service.map<string>((value: Service) => value.id)
-        } 
       }
     }
 
@@ -110,12 +94,6 @@ export function handleOrgJsonChanged(event: OrgJsonChanged): void {
 
       // Add other attributes
       organization.organizationType = orgJson.organizationalType
-      if(orgJson.publicKey) {
-        organization.publicKey = orgJson.publicKey.map<string>((value: PublicKey) => value.id)
-      }
-      if(orgJson.service) {
-        organization.service = orgJson.service.map<string>((value: Service) => value.id)
-      }
     }
 
     organization.save()

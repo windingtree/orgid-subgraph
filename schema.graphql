@@ -47,8 +47,14 @@ enum PublicKeyType {
 
 # A public Key
 type PublicKey @entity {
-  "ID of the public key"
+  "ID of the public key as per W3C DID"
   id: ID!
+
+  "W3C DID identifier of the public key"
+  did: String
+
+  "Organization owning the public key"
+  organization: Organization
 
   "Type or algorithm of the Public Key"
   type: PublicKeyType!
@@ -65,8 +71,14 @@ type PublicKey @entity {
 
 # An API Service
 type Service @entity {
-  "ID of the service as per W3C DID"
+  "ID is set to orgId-DID"
   id: ID!
+
+  "W3C DID identifier of the service"
+  did: String
+
+  "Organization exposing this service"
+  organization: Organization
 
   "Service Endpoint or Base URL for the service requests"
   serviceEndpoint: String!
@@ -138,7 +150,7 @@ enum OrganizationType {
 # Define an Organization
 type Organization @entity {
   # ORGiD value
-  "ID is set to the ORGiD value"
+  "ID is set to ORGiD value"
   id: ID!
 
   "did is set to the W3C DID value. Where possible, use the ID instead for performance."
@@ -162,7 +174,7 @@ type Organization @entity {
 
   # Mapping with other Organizations
   "Sub-units of this organization"
-  units: [Organization!]
+  units: [Organization!] @derivedFrom(field: "parent")
 
   "Parent organization"
   parent: Organization
@@ -178,10 +190,16 @@ type Organization @entity {
   organizationalUnit: OrganizationalUnit
 
   "Array of Public Keys associated with the Organization"
-  publicKey: [PublicKey!]
+  publicKey: [PublicKey!] @derivedFrom(field: "organization")
 
   "Array of Services associated with the Organization"
-  service: [Service!]
+  service: [Service!] @derivedFrom(field: "organization")
+
+  "Directories where the organization is registered"
+  registeredDirectories: [RegisteredDirectoryOrganization!] @derivedFrom(field: "organization")
+
+  "Directories where the organization has made a request to join"
+  requestedDirectories: [RequestedDirectoryOrganization!] @derivedFrom(field: "organization")
 
   # Creation stats
   "Timestamp of the Organization Creation"
@@ -203,10 +221,10 @@ type Directory @entity {
   isRemoved: Boolean!
 
   "List of Organizations registered in this directory"
-  registeredOrganizations: [Organization!]
+  registeredOrganizations: [RegisteredDirectoryOrganization!] @derivedFrom(field: "directory")
 
-  "List of Organizations pending: they have requested to join the directory but pending acceptance"
-  pendingOrganizations: [Organization!]
+  "List of Organizations that have requested to join the directory but pending acceptance"
+  requestedOrganizations: [RequestedDirectoryOrganization!] @derivedFrom(field: "directory")
 
   "Timestamp of the directory addition in the official index"
   addedAtTimestamp: BigInt!
@@ -219,4 +237,28 @@ type Directory @entity {
 
   "Block number when the directory was removed from the official index"
   removedAtBlockNumber: BigInt
+}
+
+# Define the many-to-many mapping Organization<>Directory
+type RegisteredDirectoryOrganization @entity {
+  "Identifier of the organization-directory mapping"
+  id: ID!   # Set to `${directory.id}-${organization.id}`
+
+  "Organization party of the mapping"
+  organization: Organization!
+
+  "Directory party of the mapping"
+  directory: Directory!
+}
+
+# Define the many-to-many mapping Organization<>Directory
+type RequestedDirectoryOrganization @entity {
+  "Identifier of the organization-directory mapping"
+  id: ID!   # Set to `${directory.id}-${organization.id}`
+
+  "Organization party of the mapping"
+  organization: Organization!
+
+  "Directory party of the mapping"
+  directory: Directory!
 }
