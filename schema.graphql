@@ -195,11 +195,8 @@ type Organization @entity {
   "Array of Services associated with the Organization"
   service: [Service!] @derivedFrom(field: "organization")
 
-  "Directories where the organization is registered"
-  registeredDirectories: [RegisteredDirectoryOrganization!] @derivedFrom(field: "organization")
-
-  "Directories where the organization has made a request to join"
-  requestedDirectories: [RequestedDirectoryOrganization!] @derivedFrom(field: "organization")
+  "Directories where the organization is participating (Registered, Requested to join, ..)"
+  directories: [DirectoryOrganization!] @derivedFrom(field: "organization")
 
   # Creation stats
   "Timestamp of the Organization Creation"
@@ -220,11 +217,8 @@ type Directory @entity {
   "Indicates if the directory itself has been removed: it is not an official directory anymore"
   isRemoved: Boolean!
 
-  "List of Organizations registered in this directory"
-  registeredOrganizations: [RegisteredDirectoryOrganization!] @derivedFrom(field: "directory")
-
-  "List of Organizations that have requested to join the directory but pending acceptance"
-  requestedOrganizations: [RequestedDirectoryOrganization!] @derivedFrom(field: "directory")
+  "List of Organizations interacting with this directory"
+  organizations: [DirectoryOrganization!] @derivedFrom(field: "directory")
 
   "Timestamp of the directory addition in the official index"
   addedAtTimestamp: BigInt!
@@ -239,29 +233,18 @@ type Directory @entity {
   removedAtBlockNumber: BigInt
 }
 
-"Defines a mapping between Directories and registered Organizations contained within"
-type RegisteredDirectoryOrganization @entity {
-  "Identifier of the organization-directory mapping"
-  id: ID!   # Set to `${directory.id}-${organization.id}`
-
-  "Organization party of the mapping"
-  organization: Organization!
-
-  "Directory party of the mapping"
-  directory: Directory!
-
-  "Segment (ie: Name) of the directory"
-  segment: String!
-
-  "GPS Latitude of the associated organization"
-  latitude: BigDecimal
-
-  "GPS Longitude of the associated organization"
-  longitude: BigDecimal
+enum OrganizationRegistrationStatus {
+  Unknown                 # The organization status is unknown (transient state)
+  RegistrationRequested   # The organization has an open request
+  WithdrawalRequested     # The organization made a withdrawal request
+  Challenged              # The organization has been challenged
+  Disputed                # The challenge has been disputed
+  Registered              # The organization is registered
+  Removed                 # The organization has been removed from directory
 }
 
-"Defines a mapping between Directories and Organizations that requested to be part of it"
-type RequestedDirectoryOrganization @entity {
+"Defines a mapping between Directories and Organizations"
+type DirectoryOrganization @entity {
   "Identifier of the organization-directory mapping"
   id: ID!   # Set to `${directory.id}-${organization.id}`
 
@@ -273,6 +256,12 @@ type RequestedDirectoryOrganization @entity {
 
   "Directory party of the mapping"
   directory: Directory!
+
+  "Registration Status of the organization in the directory"
+  registrationStatus: OrganizationRegistrationStatus!
+
+  "Indicates if the organization is in the directory or not"
+  isIncluded: Boolean!
 
   "GPS Latitude of the associated organization"
   latitude: BigDecimal

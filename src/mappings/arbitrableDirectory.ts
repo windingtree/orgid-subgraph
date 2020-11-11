@@ -1,4 +1,4 @@
-import { log, store } from "@graphprotocol/graph-ts"
+import { log, store, Address } from "@graphprotocol/graph-ts"
 import {
   ChallengeContributed,
   Dispute,
@@ -17,8 +17,7 @@ import {
   Organization,
   Directory,
   Point,
-  RegisteredDirectoryOrganization,
-  RequestedDirectoryOrganization,
+  DirectoryOrganization,
 } from '../../generated/schema'
 
 // Handle a change of name of the directory
@@ -32,141 +31,91 @@ export function handleDirectoryNameChanged(event: SegmentChanged): void {
   }
 }
 
+// Get the DirectoryOrganization mapping entity
+function safeGetDirectoryOrganization(directoryAddress: Address, orgId: string): DirectoryOrganization | null {
+  // Retrieve objects
+  let directory = Directory.load(directoryAddress.toHexString())
+  let organization = Organization.load(orgId)
+
+  // Abort if objects can not be retrieved
+  if((directory == null) || (organization == null)) {
+    log.error("arbitrableDirectory|Organization or Directory do not exist|{}|{}", [directoryAddress.toHexString(), orgId])
+    return null
+  }
+
+  // Create mapping id and retrieve
+  let directoryOrganizationId = directory.id.concat('-').concat(organization.id)
+  let directoryOrganization = DirectoryOrganization.load(directoryOrganizationId)
+  
+  // If mapping does not exist, create it
+  if(!directoryOrganization) {
+    directoryOrganization = new DirectoryOrganization(directoryOrganizationId)
+
+    // Add properties
+    directoryOrganization.directory = directory.id
+    directoryOrganization.organization = organization.id
+    directoryOrganization.segment = directory.segment
+
+    // Add GPS coordinates
+    let locationPoint = Point.load(orgId)
+    if(locationPoint) {
+      directoryOrganization.latitude = locationPoint.latitude
+      directoryOrganization.longitude = locationPoint.longitude
+    }
+
+    // Add default state - to be updated by specialized function
+    directoryOrganization.registrationStatus = "Unknown"
+    directoryOrganization.isIncluded = false
+  }
+
+  return directoryOrganization
+
+}
+
+// Update the registration status of an Organization in a Directory
+function updateDirectoryOrganizationStatus(directoryAddress: Address, orgId: string, status: string, isIncluded: boolean): void {
+  // Retrieve mapping
+  let directoryOrganization = safeGetDirectoryOrganization(directoryAddress, orgId)
+  
+  // Update status
+  if(directoryOrganization != null) {
+    directoryOrganization.registrationStatus = status
+    directoryOrganization.isIncluded = isIncluded
+    directoryOrganization.save()
+  }
+}
+
 // Handle the request of an organization to join the directory
 export function handleOrganizationSubmitted(event: OrganizationSubmitted): void {
-  // Retrieve objects
-  let directory = Directory.load(event.address.toHexString())
-  let directoryContract = ArbitrableDirectoryContract.bind(event.address)
-  let organization = Organization.load(event.params._organization.toHexString())
-  let locationPoint = Point.load(event.params._organization.toHexString())
-
-  // Check if all objects are present
-  if((directory != null) && (directoryContract != null) && (organization != null)) {
-
-    // Create the mapping entity that will derive fields
-    let mappingEntityId = directory.id.concat('-').concat(organization.id)
-    let mappingEntity = RequestedDirectoryOrganization.load(mappingEntityId)
-    if(!mappingEntity) {
-      mappingEntity = new RequestedDirectoryOrganization(mappingEntityId)
-
-      // Add properties
-      mappingEntity.directory = directory.id
-      mappingEntity.organization = organization.id
-      mappingEntity.segment = directory.segment
-
-      // Add location
-      if(locationPoint != null) {
-        mappingEntity.latitude = locationPoint.latitude
-        mappingEntity.longitude = locationPoint.longitude
-      }
-      mappingEntity.save()
-      log.info("handleOrganizationSubmitted|Directory updated|{}|{}", [directory.id, organization.id])
-    } else {
-      log.error("handleOrganizationSubmitted|Organization is already part of Directory|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
-    }
-    
-  } else {
-    log.error("handleOrganizationSubmitted|Directory or Organization Not found|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
-  }
+  let orgId = event.params._organization.toHexString()
+  updateDirectoryOrganizationStatus(event.address, orgId, "RegistrationRequested", false)
 }
 
 // Handle the withdrawl of the request of an organization to join the directory
 export function handleOrganizationRequestRemoved(event: OrganizationRequestRemoved): void {
-  // Retrieve objects
-  let directory = Directory.load(event.address.toHexString())
-  let directoryContract = ArbitrableDirectoryContract.bind(event.address)
-  let organization = Organization.load(event.params._organization.toHexString())
-
-  // Check if all objects are present
-  if((directory != null) && (directoryContract != null) && (organization != null)) {
-    // Retrieve the mapping
-    let mappingEntityId = directory.id.concat('-').concat(organization.id)
-    let mappingEntity = RequestedDirectoryOrganization.load(mappingEntityId)
-    if(!mappingEntity) {
-      log.error("handleOrganizationRequestRemoved|Organization is not part of Directory|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
-    } else {
-      // Remove the mapping entity
-      store.remove('RequestedDirectoryOrganization', mappingEntityId)
-      log.info("handleOrganizationRequestRemoved|Organization-Directory mapping removed|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
-    }
-
-  } else {
-    log.error("handleOrganizationRequestRemoved|Directory or Organization Not found|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
-  }
+  let orgId = event.params._organization.toHexString()
+  updateDirectoryOrganizationStatus(event.address, orgId, "WithdrawalRequested", false)
 }
 
 // Handle the inclusion of a new organization in the directory
 export function handleOrganizationAdded(event: OrganizationAdded): void {
-  // Retrieve objects
-  let directory = Directory.load(event.address.toHexString())
-  let directoryContract = ArbitrableDirectoryContract.bind(event.address)
-  let organization = Organization.load(event.params._organization.toHexString())
-  let locationPoint = Point.load(event.params._organization.toHexString())
-
-  // Check if all objects are retrieved
-  if((directory != null) && (directoryContract != null) && (organization != null)) {
-
-    // Create the ID
-    let mappingEntityId = directory.id.concat('-').concat(organization.id)
-    let mappingEntity = RegisteredDirectoryOrganization.load(mappingEntityId)
-
-    // Verify that the mapping does not already exist
-    if(!mappingEntity) {
-      mappingEntity = new RegisteredDirectoryOrganization(mappingEntityId)
-
-      // Create the mapping
-      mappingEntity.directory = directory.id
-      mappingEntity.organization = organization.id
-      mappingEntity.segment = directory.segment
-
-      // Add location
-      if(locationPoint != null) {
-        mappingEntity.latitude = locationPoint.latitude
-        mappingEntity.longitude = locationPoint.longitude
-      }
-
-      mappingEntity.save()
-      log.info("handleOrganizationAdded|Directory updated|{}|{}", [directory.id, organization.id])
-    } else {
-      log.error("handleOrganizationAdded|Organization is already part of Directory|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
-    }
-
-  } else {
-    log.error("handleOrganizationAdded|Directory or Organization Not found|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
-  }
+  let orgId = event.params._organization.toHexString()
+  updateDirectoryOrganizationStatus(event.address, orgId, "Registered", true)
 }
 
 // Handle the removal of an organization from the directory
 export function handleOrganizationRemoved(event: OrganizationRemoved): void {
-  // Retrieve objects
-  let directory = Directory.load(event.address.toHexString())
-  let directoryContract = ArbitrableDirectoryContract.bind(event.address)
-  let organization = Organization.load(event.params._organization.toHexString())
-
-  // Check if all objects are present
-  if((directory != null) && (directoryContract != null) && (organization != null)) {
-    // Create the mapping ID
-    let mappingEntityId = directory.id.concat('-').concat(organization.id)
-    let mappingEntity = RegisteredDirectoryOrganization.load(mappingEntityId)
-
-    // Check if mapping exists and remove it
-    if(!mappingEntity) {
-      log.error("handleOrganizationRemoved|Organization is not part of Directory|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
-    } else {
-      store.remove('RegisteredDirectoryOrganization', mappingEntityId)
-      log.info("handleOrganizationRemoved|Organization-Directory mapping removed|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
-    }
-
-  } else {
-    log.error("handleOrganizationRemoved|Directory or Organization Not found|{}|{}", [event.address.toHexString(), event.params._organization.toHexString()])
-  }
+  let orgId = event.params._organization.toHexString()
+  updateDirectoryOrganizationStatus(event.address, orgId, "Removed", false)
 }
 
-
+// Handle the challenge of an organization
+export function handleOrganizationChallenged(event: OrganizationChallenged): void {
+  let orgId = event.params._organization.toHexString()
+  updateDirectoryOrganizationStatus(event.address, orgId, "Challenged", true)
+}
 
 /* TODO: Handle challenges and arbitration process */
-export function handleOrganizationChallenged(event: OrganizationChallenged): void {}
-
 export function handleRuling(event: Ruling): void {}
 
 export function handleChallengeContributed(event: ChallengeContributed): void {}
