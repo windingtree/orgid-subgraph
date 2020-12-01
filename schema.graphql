@@ -269,10 +269,10 @@ type DirectoryOrganization @entity {
   longitude: BigDecimal
 
   "Timestamp of the registration of the Organization in the Directory"
-  registeredAtTimestamp: BigInt!
+  registeredAtTimestamp: BigInt
 
   "Block number when the organization was registered in the Directory"
-  registeredAtBlockNumber: BigInt!
+  registeredAtBlockNumber: BigInt
 
   "Timestamp when the organization was removed from the Directory"
   removedAtTimestamp: BigInt
