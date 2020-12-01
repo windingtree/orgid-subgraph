@@ -238,7 +238,6 @@ enum OrganizationRegistrationStatus {
   RegistrationRequested   # The organization has an open request
   WithdrawalRequested     # The organization made a withdrawal request
   Challenged              # The organization has been challenged
-  Disputed                # The challenge has been disputed
   Registered              # The organization is registered
   Removed                 # The organization has been removed from directory
 }
@@ -268,4 +267,16 @@ type DirectoryOrganization @entity {
 
   "GPS Longitude of the associated organization"
   longitude: BigDecimal
+
+  "Timestamp of the registration of the Organization in the Directory"
+  registeredAtTimestamp: BigInt!
+
+  "Block number when the organization was registered in the Directory"
+  registeredAtBlockNumber: BigInt!
+
+  "Timestamp when the organization was removed from the Directory"
+  removedAtTimestamp: BigInt
+
+  "Block number when the organization was removed from the Directory"
+  removedAtBlockNumber: BigInt
 }

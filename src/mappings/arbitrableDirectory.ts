@@ -1,4 +1,4 @@
-import { log, store, Address } from "@graphprotocol/graph-ts"
+import { log, store, Address, BigInt } from "@graphprotocol/graph-ts"
 import {
   ChallengeContributed,
   Dispute,
@@ -73,46 +73,96 @@ function safeGetDirectoryOrganization(directoryAddress: Address, orgId: string):
 }
 
 // Update the registration status of an Organization in a Directory
-function updateDirectoryOrganizationStatus(directoryAddress: Address, orgId: string, status: string, isIncluded: boolean): void {
+function updateDirectoryOrganizationStatus(
+    directoryAddress: Address,
+    orgId: string,
+    status: string,
+    isIncluded: boolean,
+    eventTimestamp: BigInt,
+    eventBlockNumber: BigInt,
+  ): void {
   // Retrieve mapping
   let directoryOrganization = safeGetDirectoryOrganization(directoryAddress, orgId)
   
   // Update status
   if(directoryOrganization != null) {
+    // Update the status
     directoryOrganization.registrationStatus = status
     directoryOrganization.isIncluded = isIncluded
+
+    // Update timestamps
+    if(status == 'Registered') {
+      directoryOrganization.registeredAtTimestamp = eventTimestamp
+      directoryOrganization.registeredAtBlockNumber = eventBlockNumber
+    }
+
+    if(status == 'Removed') {
+      directoryOrganization.removedAtTimestamp = eventTimestamp
+      directoryOrganization.removedAtBlockNumber = eventBlockNumber
+    }
+
     directoryOrganization.save()
   }
 }
 
 // Handle the request of an organization to join the directory
 export function handleOrganizationSubmitted(event: OrganizationSubmitted): void {
-  let orgId = event.params._organization.toHexString()
-  updateDirectoryOrganizationStatus(event.address, orgId, "RegistrationRequested", false)
+  updateDirectoryOrganizationStatus(
+    event.address,
+    event.params._organization.toHexString(),
+    "RegistrationRequested",
+    false,
+    event.block.timestamp,
+    event.block.number,
+  )
 }
 
 // Handle the withdrawl of the request of an organization to join the directory
 export function handleOrganizationRequestRemoved(event: OrganizationRequestRemoved): void {
-  let orgId = event.params._organization.toHexString()
-  updateDirectoryOrganizationStatus(event.address, orgId, "WithdrawalRequested", false)
+  updateDirectoryOrganizationStatus(
+    event.address,
+    event.params._organization.toHexString(),
+    "WithdrawalRequested",
+    false,
+    event.block.timestamp,
+    event.block.number,
+  )
 }
 
 // Handle the inclusion of a new organization in the directory
 export function handleOrganizationAdded(event: OrganizationAdded): void {
-  let orgId = event.params._organization.toHexString()
-  updateDirectoryOrganizationStatus(event.address, orgId, "Registered", true)
+  updateDirectoryOrganizationStatus(
+    event.address,
+    event.params._organization.toHexString(),
+    "Registered",
+    true,
+    event.block.timestamp,
+    event.block.number,
+  )
 }
 
 // Handle the removal of an organization from the directory
 export function handleOrganizationRemoved(event: OrganizationRemoved): void {
-  let orgId = event.params._organization.toHexString()
-  updateDirectoryOrganizationStatus(event.address, orgId, "Removed", false)
+  updateDirectoryOrganizationStatus(
+    event.address,
+    event.params._organization.toHexString(),
+    "Removed",
+    false,
+    event.block.timestamp,
+    event.block.number,
+  )
 }
 
 // Handle the challenge of an organization
 export function handleOrganizationChallenged(event: OrganizationChallenged): void {
-  let orgId = event.params._organization.toHexString()
-  updateDirectoryOrganizationStatus(event.address, orgId, "Challenged", true)
+  updateDirectoryOrganizationStatus(
+    event.address,
+    event.params._organization.toHexString(),
+    "Challenged",
+    true,
+    event.block.timestamp,
+    event.block.number,
+  )
 }
 
 /* TODO: Handle challenges and arbitration process */
