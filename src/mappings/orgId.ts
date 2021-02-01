@@ -22,7 +22,7 @@ export function handleOrganizationCreated(event: OrganizationCreated): void {
     organization.createdAtTimestamp = event.block.timestamp
     organization.createdAtBlockNumber = event.block.number
     organization.organizationType = 'LegalEntity'
-    
+
     // Add JSON IPFS CID
     if(organization.orgJsonHash) {
       organization.ipfsCid = cidFromHash(organization.orgJsonHash as Bytes)
@@ -39,7 +39,7 @@ export function handleOrganizationCreated(event: OrganizationCreated): void {
 
     // Save organization
     organization.save()
-    
+
   }
 }
 
@@ -51,7 +51,7 @@ export function handleUnitCreated(event: UnitCreated): void {
     unit.createdAtTimestamp = event.block.timestamp
     unit.createdAtBlockNumber = event.block.number
     unit.organizationType = 'OrganizationalUnit'
-    
+
     // Add JSON IPFS CID
     if(unit.orgJsonHash) {
       unit.ipfsCid = cidFromHash(unit.orgJsonHash as Bytes)
