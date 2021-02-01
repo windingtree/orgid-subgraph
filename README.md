@@ -68,7 +68,7 @@ docker-compose up
 Generate code:
 
 ```shell
-yarn codegen
+yarn codegen:mainnet
 ```
 
 Build the subgraph:
@@ -126,6 +126,3 @@ curl -X POST \
     -d '{ "query": "query { indexingStatusForPendingVersion(subgraphName: \"windingtree/orgid-subgraph\") { synced health fatalError { message handler} }}" }' \
     https://api.thegraph.com/index-node/graphql
 ```
-
-
-

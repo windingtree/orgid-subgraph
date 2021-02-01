@@ -4,12 +4,15 @@
   "description": "The ORGiD subgraph maps the ORGiD Contract with events in GraphQL",
   "license": "GPL-3.0-only",
   "scripts": {
-    "codegen": "graph codegen && mustache config/mainnet.json src/constants.template.ts > src/constants.ts",
-    "build": "graph build",
     "prepare:ropsten": "mustache config/ropsten.json subgraph.template.yaml > subgraph.yaml && mustache config/ropsten.json src/constants.template.ts > src/constants.ts",
     "prepare:mainnet": "mustache config/mainnet.json subgraph.template.yaml > subgraph.yaml && mustache config/mainnet.json src/constants.template.ts > src/constants.ts",
-    "deploy:ropsten": "yarn prepare:ropsten && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ windingtree/orgid-subgraph-ropsten",
-    "deploy:mainnet": "yarn prepare:mainnet && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ windingtree/orgid-subgraph",
+    "codegen:graph": "graph codegen",
+    "import:abi": "node ./scripts/importAbi.js",
+    "codegen:ropsten": "yarn prepare:ropsten && yarn import:abi && yarn codegen:graph",
+    "codegen:mainnet": "yarn prepare:mainnet && yarn import:abi && yarn codegen:graph",
+    "build": "graph build",
+    "deploy:ropsten": "yarn codegen:ropsten && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ windingtree/orgid-subgraph-ropsten",
+    "deploy:mainnet": "yarn codegen:mainnet && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ windingtree/orgid-subgraph",
     "deploy": "yarn deploy:ropsten && yarn deploy:mainnet",
     "create-local": "graph create --node http://localhost:8020/ windingtree/orgid-subgraph",
     "remove-local": "graph remove --node http://localhost:8020/ windingtree/orgid-subgraph",
@@ -18,6 +21,8 @@
   "dependencies": {
     "@graphprotocol/graph-cli": "0.18.0",
     "@graphprotocol/graph-ts": "0.18.0",
+    "@windingtree/org.id": "^1.1.1",
+    "@windingtree/org.id-directories": "^0.18.0",
     "mustache": "^4.0.1"
   }
 }

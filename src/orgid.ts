@@ -9,13 +9,13 @@ import {
 } from "./constants"
 
 import {
-  Orgid as OrgidContract,
-} from "../generated/Contract/Orgid"
+  OrgIdContract,
+} from "../generated/OrgId/OrgIdContract"
 
 import { Organization } from "../generated/schema"
 
 // ORGiD Contract
-export let orgidContract = OrgidContract.bind(Address.fromString(ORGID_ADDRESS))
+export let orgidContract = OrgIdContract.bind(Address.fromString(ORGID_ADDRESS))
 
 // Get organization from contract
 export function getOrganizationFromContract(id: Bytes): Organization | null {
@@ -24,6 +24,7 @@ export function getOrganizationFromContract(id: Bytes): Organization | null {
   let organization = Organization.load(id.toHex())
   if(organization == null) {
     organization = new Organization(id.toHex())
+    organization.did = 'did:orgid:'.concat(id.toHexString())
   }
 
   // Retrieve additional details from smartcontract
@@ -31,7 +32,7 @@ export function getOrganizationFromContract(id: Bytes): Organization | null {
 
   // Check if the call reverted
   if(getOrganizationCallResult.reverted) {
-    log.warning("getOrganization reverted", [])
+    log.warning("getOrganization reverted: {}", [id.toHex()])
     return null
   }
 
@@ -63,13 +64,6 @@ export function getOrganizationFromContract(id: Bytes): Organization | null {
   // Map Parent
   if(parentOrgId != null) {
     organization.parent = parentOrgId.toHexString()
-  }
-
-  // Map units
-  let getUnitsCallResult = orgidContract.try_getUnits(id, true)
-  if(!getUnitsCallResult.reverted) {
-    let rawUnits = <Array<Bytes>>getUnitsCallResult.value
-    organization.units = rawUnits.map<string>((value: Bytes, index: i32, array: Array<Bytes>) => value.toHexString())
   }
 
   return organization

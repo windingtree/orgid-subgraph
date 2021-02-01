@@ -58,6 +58,11 @@
   dependencies:
     assemblyscript "https://github.com/AssemblyScript/assemblyscript#36040d5b5312f19a025782b5e36663823494c2f3"
 
+"@openzeppelin/contracts@2.5.0":
+  version "2.5.0"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-2.5.0.tgz#e327a98ba1d26b7756ff62885a0aa0967a375449"
+  integrity sha512-t3jm8FrhL9tkkJTofkznTqo/XXdHi21w5yXwalEnaMOp22ZwZ0f/mmKdlgMMLPFa6bSVHbY88mKESwJT/7m5Lg==
+
 "@protobufjs/utf8@^1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
@@ -113,6 +118,21 @@
   version "1.2.3"
   resolved "https://registry.yarnpkg.com/@types/range-parser/-/range-parser-1.2.3.tgz#7ee330ba7caafb98090bece86a5ee44115904c2c"
   integrity sha512-ewFXqrQHlFsgc09MK5jP5iR7vumV/BYayNC6PgJO2LPe8vrnNFyjQjSppfEngITi0qvfKtzFvgKymGheFM9UOA==
+
+"@windingtree/org.id-directories@^0.18.0":
+  version "0.18.0"
+  resolved "https://registry.yarnpkg.com/@windingtree/org.id-directories/-/org.id-directories-0.18.0.tgz#109564bc7f903046bac27ed6bcb525568233c452"
+  integrity sha512-uFY4Az5pNDq9thRqabyCyZFsB2qg+ymdF2KXi331gj2sQhgiiZflfEenFPuC7RTTII5Io9Yhs8SU+q6/aWGYlw==
+  dependencies:
+    "@openzeppelin/contracts" "2.5.0"
+    "@windingtree/org.id" "1.1.1"
+
+"@windingtree/org.id@1.1.1", "@windingtree/org.id@^1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@windingtree/org.id/-/org.id-1.1.1.tgz#44998f7d23c9071035bdeb598ff8ac517d397c94"
+  integrity sha512-/qoaVaNo/2nbIPD46LLzvn9/Q6HKQTtY6T3RDWpNjmDg/MYr8nPflaPLboqzVuMDzd3d24Q7TGJ0sFL/KI2yvQ==
+  dependencies:
+    "@openzeppelin/contracts" "2.5.0"
 
 JSONStream@1.3.2:
   version "1.3.2"
